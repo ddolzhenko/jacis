@@ -1,0 +1,56 @@
+{
+    "build_systems":
+    [
+        {
+            "name": "Test jacis",
+            "working_dir": "${project_path}",
+
+            "windows": {
+                "cmd": ["python", "jacis", "test"]
+            },
+
+            "osx" : {
+                "cmd": ["python", "jacis", "test"]
+            },
+            
+            
+            "file_regex": "error:.*\"(.+)\", line ([0-9]+)",
+            "selector": "source.yaml, source.python, source.json",
+
+            "variants":
+            [
+                {
+                    "name": "Run",
+                    
+                    "cmd": ["ls"]
+                }
+            ]
+        },
+
+        
+    ],
+    
+    "folders":
+    [
+        {
+            "name": "root",
+            "path": ".",
+            // "folder_exclude_patterns": ["bin"]
+        }
+    ],
+
+    "settings":
+    {
+        "font_face": "Menlo",       // better for OSX
+        "font_face": "Consolas",    // better for windows
+
+        "auto_indent": true,
+        "smart_indent": true,
+        "spell_check": true,
+        "tab_size": 4,
+        "translate_tabs_to_spaces": true,
+        "trim_automatic_white_space": true,
+        "word_wrap": "false"
+    }
+    
+}
