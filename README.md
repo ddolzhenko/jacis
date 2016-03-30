@@ -1,2 +1,2 @@
 # jacis
-Just Another Continious Integration System
+Just Another Continuous Integration System
