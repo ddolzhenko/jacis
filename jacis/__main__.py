@@ -37,6 +37,7 @@ def main():
     parser = argparse.ArgumentParser()
    
     parser.add_argument("update", help="Copies or updates folder from external source")
+    parser.add_argument("sync", help="Synchronizes external folder with local one")
 
     args = parser.parse_args()
 
