@@ -4,25 +4,30 @@
         {
             "name": "Test jacis",
             "working_dir": "${project_path}",
+            "file_regex": "rror:.*\"(.+)\", line ([0-9]+)",
+            "selector": "source.yaml, source.python, source.json",
+
 
             "windows": {
-                "cmd": ["python", "jacis", "test"]
+                "cmd": ["python", "jacis", "--help"]
             },
 
             "osx" : {
-                "cmd": ["python", "jacis", "test"]
+                "cmd": ["echo", "not yet supported"]
             },
             
-            
-            "file_regex": "error:.*\"(.+)\", line ([0-9]+)",
-            "selector": "source.yaml, source.python, source.json",
-
             "variants":
             [
                 {
                     "name": "Run",
                     
-                    "cmd": ["ls"]
+                    "windows": {
+                        "cmd": ["python", "jacis", "update=https://github.com/ddolzhenko/TestGit.git"]
+                    },
+
+                    "osx" : {
+                        "cmd": ["echo", "not yet supported"]
+                    },
                 }
             ]
         },
