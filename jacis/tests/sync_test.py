@@ -31,6 +31,7 @@ __email__  = "d.dolzhenko@gmail.com"
 
 import os
 import unittest
+import tempfile
 from jacis import sync, utils
 
 #-------------------------------------------------------------------------------
@@ -38,7 +39,6 @@ from jacis import sync, utils
 class BaseTestCase(unittest.TestCase):
     
     def setUp(self):
-        import tempfile
         self.prev_work_dir = os.getcwd()
         self.work_dir = tempfile.mkdtemp()
         os.chdir(self.work_dir)
@@ -48,7 +48,6 @@ class BaseTestCase(unittest.TestCase):
             }
 
     def tearDown(self):
-        import shutil
         os.chdir(self.prev_work_dir)
         utils.rmdir(self.work_dir)
 
