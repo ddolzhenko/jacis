@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""sync module test
+"""syncing tool
 """
 
 #-------------------------------------------------------------------------------
@@ -30,41 +30,14 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import unittest
-from jacis import sync, utils
+import git
+
+from jacis import utils
 
 #-------------------------------------------------------------------------------
 
-class BaseTestCase(unittest.TestCase):
+def sync(url, local_dir):
+    git.Repo.clone_from(url, local_dir)
+
+
     
-    def setUp(self):
-        import tempfile
-        self.prev_work_dir = os.getcwd()
-        self.work_dir = tempfile.mkdtemp()
-        os.chdir(self.work_dir)
-
-        self.repos = {
-            "https://github.com/ddolzhenko/TestGit.git" : dict(name="git-http", hash="aaea772d08e46f700797a79615bb566b1254b48b"),
-            }
-
-    def tearDown(self):
-        import shutil
-        os.chdir(self.prev_work_dir)
-        utils.rmdir(self.work_dir)
-
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def assertPredicate(self, p, x, msg=""):
-        if not p(x):
-            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
-    
-    def test_full_repo(self):
-        for url, data in self.repos.items():
-            repo = data["name"]
-            sync.sync(url, repo)
-
-            with self.subTest(url=url):
-                self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
-                with utils.work_dir(repo):
-                    self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))

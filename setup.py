@@ -1,5 +1,7 @@
 from distutils.core import setup
 
+depedencies=["checksumdir 1.0.5", "gitpython"]
+
 setup(
     name         = 'jacis',
     packages     = ['jacis'], # this must be the same as the name above

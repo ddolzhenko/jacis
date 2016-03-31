@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""sync module test
+"""Utilities (that should be in python)
 """
 
 #-------------------------------------------------------------------------------
@@ -30,41 +30,51 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import unittest
-from jacis import sync, utils
+import checksumdir
+import shutil
+import stat
 
 #-------------------------------------------------------------------------------
 
-class BaseTestCase(unittest.TestCase):
+
+def checksum(path):
+    """Directory sha1 checksum"""
+    return checksumdir.dirhash(path, 'sha1')
+
+
+def rmdir(path):
+    """Forced directory remove"""
+    def onerror(func, path, exc_info):
+        if not os.access(path, os.W_OK):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+        else:
+            raise
     
-    def setUp(self):
-        import tempfile
-        self.prev_work_dir = os.getcwd()
-        self.work_dir = tempfile.mkdtemp()
-        os.chdir(self.work_dir)
+    shutil.rmtree(path, onerror=onerror)
 
-        self.repos = {
-            "https://github.com/ddolzhenko/TestGit.git" : dict(name="git-http", hash="aaea772d08e46f700797a79615bb566b1254b48b"),
-            }
-
-    def tearDown(self):
-        import shutil
-        os.chdir(self.prev_work_dir)
-        utils.rmdir(self.work_dir)
-
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def assertPredicate(self, p, x, msg=""):
-        if not p(x):
-            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
     
-    def test_full_repo(self):
-        for url, data in self.repos.items():
-            repo = data["name"]
-            sync.sync(url, repo)
+class work_dir(object):
+    """change working dir within 'with' context
+    Usage: 
+        with workdir('otherdir/foo/'):
+            print(os.getcwd())
+        print(os.getcwd()) # oldone
+    """
+    def __init__(self, directory):
+        cwd = os.getcwd()
+        self.current  = cwd
+        self.previous = cwd
 
-            with self.subTest(url=url):
-                self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
-                with utils.work_dir(repo):
-                    self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))
+        self._wanted = directory
+
+    def __enter__(self):
+        self.previous = self.current
+        os.chdir(self._wanted)
+        self.current = os.getcwd()
+        return self
+
+    def __exit__(self, *args):
+        os.chdir(self.previous)
+        self.current = self.previous
+
