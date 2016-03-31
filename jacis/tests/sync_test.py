@@ -60,10 +60,9 @@ class BaseTestCase(unittest.TestCase):
     
     def test_full_repo(self):
         for url, data in self.repos.items():
-            repo = data["name"]
-            sync.sync(url, repo)
-
             with self.subTest(url=url):
+                repo = data["name"]
+                sync.sync(url, repo)
                 self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
                 with utils.work_dir(repo):
                     self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))
