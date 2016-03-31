@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""Utilities (that should be in python)
 """
 
 #-------------------------------------------------------------------------------
@@ -29,23 +29,52 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import argparse
+import os
+import checksumdir
+import shutil
+import stat
 
 #-------------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-   
-    parser.add_argument("update", help="Copies or updates folder from external source")
-    parser.add_argument("sync", help="Synchronizes external folder with local one")
 
-    args = parser.parse_args()
+def checksum(path):
+    """Directory sha1 checksum"""
+    return checksumdir.dirhash(path, 'sha1')
 
-    print(args.update)
-  
 
-if __name__ == "__main__":
-    import sys
-    print("call: '{}'".format(" ".join(sys.argv)))
-    main()
-    print("\n>end<\n")
+def rmdir(path):
+    """Forced directory remove"""
+    def onerror(func, path, exc_info):
+        if not os.access(path, os.W_OK):
+            os.chmod(path, stat.S_IWUSR)
+            func(path)
+        else:
+            raise
+    
+    shutil.rmtree(path, onerror=onerror)
+
+    
+class work_dir(object):
+    """change working dir within 'with' context
+    Usage: 
+        with workdir('otherdir/foo/'):
+            print(os.getcwd())
+        print(os.getcwd()) # oldone
+    """
+    def __init__(self, directory):
+        cwd = os.getcwd()
+        self.current  = cwd
+        self.previous = cwd
+
+        self._wanted = directory
+
+    def __enter__(self):
+        self.previous = self.current
+        os.chdir(self._wanted)
+        self.current = os.getcwd()
+        return self
+
+    def __exit__(self, *args):
+        os.chdir(self.previous)
+        self.current = self.previous
+

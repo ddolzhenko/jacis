@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""syncing tool
 """
 
 #-------------------------------------------------------------------------------
@@ -29,23 +29,15 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import argparse
+import os
+import git
+
+from jacis import utils
 
 #-------------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-   
-    parser.add_argument("update", help="Copies or updates folder from external source")
-    parser.add_argument("sync", help="Synchronizes external folder with local one")
+def sync(url, local_dir):
+    git.Repo.clone_from(url, local_dir)
 
-    args = parser.parse_args()
 
-    print(args.update)
-  
-
-if __name__ == "__main__":
-    import sys
-    print("call: '{}'".format(" ".join(sys.argv)))
-    main()
-    print("\n>end<\n")
+    

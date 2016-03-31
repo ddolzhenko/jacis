@@ -3,13 +3,13 @@
     [
         {
             "name": "Test jacis",
-            "working_dir": "${project_path}/jacis",
-            "file_regex": "rror:.*\"(.+)\", line ([0-9]+)",
+            "working_dir": "${project_path}",
+            "file_regex": "File \"(..+)\", line (\\d+)",
             "selector": "source.yaml, source.python, source.json",
 
 
             "windows": {
-                "cmd": ["python", "-m", "unittest", "discover"]
+                "cmd": ["python", "-m", "unittest", "discover", "-v", "jacis/tests", "*_test.py"]
             },
 
             "osx" : {
