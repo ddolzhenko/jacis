@@ -62,19 +62,27 @@ class work_dir(object):
         print(os.getcwd()) # oldone
     """
     def __init__(self, directory):
-        cwd = os.getcwd()
-        self.current  = cwd
-        self.previous = cwd
-
+        self._current  = os.getcwd()
+        self._previous = os.getcwd()
         self._wanted = directory
 
+    @property
+    def previous(self):
+        return self._previous
+    
+    @property
+    def current(self):
+        return self._current
+
     def __enter__(self):
-        self.previous = self.current
+        self._previous = os.getcwd()
         os.chdir(self._wanted)
-        self.current = os.getcwd()
+        self._current = os.getcwd()
         return self
 
     def __exit__(self, *args):
-        os.chdir(self.previous)
-        self.current = self.previous
+        os.chdir(self._previous)
+        self._current = os.getcwd()
 
+    def __str__(self):
+        return self.current
