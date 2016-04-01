@@ -53,30 +53,31 @@ class PathCommands(unittest.TestCase):
     def test_full_repo(self):
         pass
 
+import collections
+
 def join(what, delimiter=" "):
     assert isinstance(delimiter, str)
-    if issubclass(what, iterable):
-        return delimiter.join(what)
+    if isinstance(what,  collections.Iterable):
+        return delimiter.join(map(str, what))
     return str(what)
 
 def _type_call_error(msg, expected, recieved, values):
     j = lambda x: join(x, ', ')
-    line = msg+"{}:\n{0}expected: {1}\n{0}recieved: {2}\n{0}values:   {3}".format(
-        ' '*4, j(expected), j(recieved), j(values))
+    line = msg+":\n{0}expected: {1}\n{0}recieved: {2}\n{0}values:   {3}".format(' '*4, j(expected), j(recieved), j(values))
     return line
 
 
-def static_types(*types, returns=None): 
+def static_typed(*types, returns=None): 
     def decorator(f):
-        def check_types(*args, **kwars):
+        def check_types(*args, **kvargs):
             if args:
-                recieved = map(type, args)
-                assert args != types, 
-                    _type_call_error('wrong arguments', types, recieved, args)
-            elif kwars:
+                recieved = [x for x in map(type, args)]
+                expected_types  = [x for x in types]
+                assert recieved == expected_types, _type_call_error('wrong arguments', types, recieved, args)
+            elif kvargs:
                 assert False, 'complex types not yet supported'
 
-            result = f(*args)
+            result = f(*args, **kvargs)
             assert type(result) == returns, 'wrong result type, expected: ' + str(returns)
 
         return check_types
@@ -87,17 +88,22 @@ class Decorators(unittest.TestCase):
 
     def test_static_typed(self):
         
-        # @static_types(str, str)
-        @static_types(str, str)
+
+        @static_typed(str, str, returns=str) 
         def test(a, b):
             return a+b;
-
-        # self.assertRaises(SomeCoolException, mymod.myfunc)
-
-        xy = test('x', 'y')
-        print(xy)
-
         
 
+        
+        with self.assertRaises(AssertionError):
+            xy = test('x', 1)
+            print(xy)
+
+        @static_typed(str, str, returns=str) 
+        def test2(a, b):
+            return 42;
+
+        xy = test2("x")
+        
 
 

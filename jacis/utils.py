@@ -68,7 +68,7 @@ class work_dir(object):
         print(os.getcwd()) # oldone
     """
     def __init__(self, directory):
-        assert isinstance(dirrectory, str)
+        assert isinstance(directory, str)
         self._current  = os.getcwd()
         self._previous = os.getcwd()
         self._wanted = directory
@@ -102,7 +102,9 @@ class temp_work_dir:
         self._work_dir.__enter__(tmp)
 
     def __exit__(self, *args):
+        tmp = self._work_dir.current
         self._work_dir.__exit__(tmp)
+        rmdir(tmp)
         self._work_dir = None
 
     def __str__(self):
@@ -111,3 +113,4 @@ class temp_work_dir:
 
 def system_call(*args, timeout=10):
     return subprocess.run(args, timeout=timeout)
+
