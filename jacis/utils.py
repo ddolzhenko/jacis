@@ -30,12 +30,18 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
+import subprocess
 import checksumdir
 import shutil
 import stat
 
 #-------------------------------------------------------------------------------
 
+# types:
+def static_typeded():
+    pass
+
+#-------------------------------------------------------------------------------
 
 def checksum(path):
     """Directory sha1 checksum"""
@@ -62,6 +68,7 @@ class work_dir(object):
         print(os.getcwd()) # oldone
     """
     def __init__(self, directory):
+        assert isinstance(dirrectory, str)
         self._current  = os.getcwd()
         self._previous = os.getcwd()
         self._wanted = directory
@@ -86,3 +93,21 @@ class work_dir(object):
 
     def __str__(self):
         return self.current
+
+
+class temp_work_dir:
+    
+    def __enter__(self):
+        self._work_dir = work_dir(tempfile.mkdtemp())
+        self._work_dir.__enter__(tmp)
+
+    def __exit__(self, *args):
+        self._work_dir.__exit__(tmp)
+        self._work_dir = None
+
+    def __str__(self):
+        return str(self._work_dir)
+    
+
+def system_call(*args, timeout=10):
+    return subprocess.run(args, timeout=timeout)
