@@ -1,0 +1,6 @@
+
+1.59:
+    dependencies: 
+    src: sync cvs -z3 -d:pserver:anonymous@boost.cvs.sourceforge.net:/cvsroot/boost co -P modulename
+
+

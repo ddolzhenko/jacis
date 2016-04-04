@@ -30,12 +30,63 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
+import subprocess
 import checksumdir
 import shutil
 import stat
+import unittest
+import collections
+
+#-------------------------------------------------------------------------------
+# tests
+
+
+class TestCase(unittest.TestCase):
+    
+    def assertPredicate(self, p, x, msg=""):
+        if not p(x):
+            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
+
+    
+
 
 #-------------------------------------------------------------------------------
 
+# types:
+def _type_call_error(msg, expected, recieved, values):
+    j = lambda x: join(x, ', ')
+    line = msg+":\n{0}expected: {1}\n{0}recieved: {2}\n{0}values:   {3}".format(' '*4, j(expected), j(recieved), j(values))
+    return line
+
+
+def strong_typed(*expected_types, returns=type(None)): 
+    def decorator(f):
+        def check_types(*args, **kvargs):
+            if args:
+                recieved = map(type, args)
+                ok = all(map(lambda p: p[0]==p[1], zip(recieved, expected_types)))
+                assert ok, _type_call_error('wrong arguments', expected_types, recieved, args)
+            elif kvargs:
+                assert False, 'complex types not yet supported'
+
+            result = f(*args, **kvargs)
+            assert type(result) == returns, 'wrong result type, expected: {}, recieved: {}'.format(returns, type(result))
+            
+            return result
+
+        return check_types
+    return decorator
+
+#-------------------------------------------------------------------------------
+# string utils
+
+def join(what, delimiter=" "):
+    assert isinstance(delimiter, str)
+    if isinstance(what,  collections.Iterable):
+        return delimiter.join(map(str, what))
+    return str(what)
+
+#-------------------------------------------------------------------------------
 
 def checksum(path):
     """Directory sha1 checksum"""
@@ -62,19 +113,49 @@ class work_dir(object):
         print(os.getcwd()) # oldone
     """
     def __init__(self, directory):
-        cwd = os.getcwd()
-        self.current  = cwd
-        self.previous = cwd
-
+        assert isinstance(directory, str)
+        self._current  = os.getcwd()
+        self._previous = os.getcwd()
         self._wanted = directory
 
+    @property
+    def previous(self):
+        return self._previous
+    
+    @property
+    def current(self):
+        return self._current
+
     def __enter__(self):
-        self.previous = self.current
+        self._previous = os.getcwd()
         os.chdir(self._wanted)
-        self.current = os.getcwd()
+        self._current = os.getcwd()
         return self
 
     def __exit__(self, *args):
-        os.chdir(self.previous)
-        self.current = self.previous
+        os.chdir(self._previous)
+        self._current = os.getcwd()
+
+    def __str__(self):
+        return self.current
+
+
+class temp_work_dir:
+    
+    def __enter__(self):
+        self._work_dir = work_dir(tempfile.mkdtemp())
+        self._work_dir.__enter__(tmp)
+
+    def __exit__(self, *args):
+        tmp = self._work_dir.current
+        self._work_dir.__exit__(tmp)
+        rmdir(tmp)
+        self._work_dir = None
+
+    def __str__(self):
+        return str(self._work_dir)
+    
+
+def system_call(*args, timeout=10):
+    return subprocess.run(args, timeout=timeout)
 
