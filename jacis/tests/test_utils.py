@@ -78,21 +78,15 @@ class TypeDecorators(utils.TestCase):
             return 42
         self.assertEqual(42, test("hello", "world"))
 
-        @strong_typed(str, str, returns=(int, int))
-        def test(a, b):
-            return (42, 314)
-        self.assertEqual((42, 314), test("hello", "world"))
+        # @strong_typed(str, str, returns=(int, int))
+        # def test(a, b):
+        #     return (42, 314)
+        # self.assertEqual((42, 314), test("hello", "world"))
 
     ########################################################
     # NOK
 
     def test_static_typed_nok_degenerated(self):
-        @strong_typed()
-        def test():
-            pass
-        with self.assertRaises(AssertionError):
-            x = test('x')
-
         @strong_typed()
         def test():
             return 42
@@ -109,12 +103,6 @@ class TypeDecorators(utils.TestCase):
         @strong_typed(returns=int)
         def test():
             return "hello"
-        with self.assertRaises(AssertionError):
-            x = test()
-
-        @strong_typed(str) # should return nothing
-        def test(a):
-            return 42
         with self.assertRaises(AssertionError):
             x = test()
 
@@ -152,19 +140,6 @@ class TypeDecorators(utils.TestCase):
 
     
     def test_static_typed_nok_trivial_2(self):
-
-        @strong_typed(int, int)
-        def test(a, b):
-            pass
-        with self.assertRaises(AssertionError):
-            x = test()
-    
-        @strong_typed(int, int)
-        def test(a, b):
-            pass
-        with self.assertRaises(AssertionError):
-            x = test(42)
-    
         @strong_typed(int, int)
         def test(a, b):
             return "hello"

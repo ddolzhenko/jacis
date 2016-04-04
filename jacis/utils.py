@@ -59,17 +59,20 @@ def _type_call_error(msg, expected, recieved, values):
     return line
 
 
-def strong_typed(*expected_types, returns=None): 
+def strong_typed(*expected_types, returns=type(None)): 
     def decorator(f):
         def check_types(*args, **kvargs):
             if args:
-                recieved = list(map(type, args))
-                assert recieved == expected_types, _type_call_error('wrong arguments', expected_types, recieved, args)
+                recieved = map(type, args)
+                ok = all(map(lambda p: p[0]==p[1], zip(recieved, expected_types)))
+                assert ok, _type_call_error('wrong arguments', expected_types, recieved, args)
             elif kvargs:
                 assert False, 'complex types not yet supported'
 
             result = f(*args, **kvargs)
-            assert type(result) == returns, 'wrong result type, expected: ' + str(returns)
+            assert type(result) == returns, 'wrong result type, expected: {}, recieved: {}'.format(returns, type(result))
+            
+            return result
 
         return check_types
     return decorator
