@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""Command line interface tests
 """
 
 #-------------------------------------------------------------------------------
@@ -29,23 +29,52 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import argparse
+import os
+import unittest
+import tempfile
+from jacis import utils
 
 #-------------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-   
-    parser.add_argument("update", help="Copies or updates folder from external source")
-    parser.add_argument("sync", help="Synchronizes external folder with local one")
+class InternalCommands(unittest.TestCase):
+    
+    def setUp(self):
+        pass
+        # utils.work_dir()
+        # self.prev_work_dir = os.getcwd()
+        # self.work_dir = tempfile.mkdtemp()
+        # os.chdir(self.work_dir)
 
-    args = parser.parse_args()
+    def tearDown(self):
+        pass
+        # os.chdir(self.prev_work_dir)
+        # utils.rmdir(self.work_dir)
 
-    print(args.update)
-  
+    def cute(self, msg):
+        return "{}. CWD: '{}'".format(msg, self.work_dir)
 
-if __name__ == "__main__":
-    import sys
-    print("call: '{}'".format(" ".join(sys.argv)))
-    main()
-    print("\n>end<\n")
+    def assertPredicate(self, p, x, msg=""):
+        if not p(x):
+            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
+    
+    def test_full_repo(self):
+        
+        def prefixed(pref):
+            def decorate(f):
+                def decorator(*args, **kvargs):
+                    print(pref)
+                    r = f(*args, **kvargs)
+                    print(pref)
+                return decorator
+            return decorate
+
+
+        @prefixed("---")
+        def foo(a, b):
+            print (a)
+            print (b)
+
+        a = 2
+        b = 3
+
+        foo(a, b)
