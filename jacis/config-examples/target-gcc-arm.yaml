@@ -1,0 +1,8 @@
+
+tools:
+  : g++ 4.5 arm c++11 [options]
+
+require:
+  - libcpp 12.0
+  - boost 1.59
+  - gtest 1.7

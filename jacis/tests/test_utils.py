@@ -30,80 +30,155 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import unittest
 from jacis import utils
+from jacis.utils import strong_typed
 
 #-------------------------------------------------------------------------------
 
-class PathCommands(unittest.TestCase):
+class TypeDecorators(utils.TestCase):
     
-    def setUp(self):
-        pass
-        
-    def tearDown(self):
-        pass
-        
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def assertPredicate(self, p, x, msg=""):
-        if not p(x):
-            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
-    
-    def test_full_repo(self):
-        pass
-
-import collections
-
-def join(what, delimiter=" "):
-    assert isinstance(delimiter, str)
-    if isinstance(what,  collections.Iterable):
-        return delimiter.join(map(str, what))
-    return str(what)
-
-def _type_call_error(msg, expected, recieved, values):
-    j = lambda x: join(x, ', ')
-    line = msg+":\n{0}expected: {1}\n{0}recieved: {2}\n{0}values:   {3}".format(' '*4, j(expected), j(recieved), j(values))
-    return line
-
-
-def static_typed(*types, returns=None): 
-    def decorator(f):
-        def check_types(*args, **kvargs):
-            if args:
-                recieved = [x for x in map(type, args)]
-                expected_types  = [x for x in types]
-                assert recieved == expected_types, _type_call_error('wrong arguments', types, recieved, args)
-            elif kvargs:
-                assert False, 'complex types not yet supported'
-
-            result = f(*args, **kvargs)
-            assert type(result) == returns, 'wrong result type, expected: ' + str(returns)
-
-        return check_types
-    return decorator
-
-class Decorators(unittest.TestCase):
-    
-
-    def test_static_typed(self):
+    def test_static_typed_ok_degenerated(self):
+        @strong_typed()
+        def test():
+            pass
+        self.assertEqual(None, test())
         
 
-        @static_typed(str, str, returns=str) 
+    def test_static_typed_ok_trivial(self):
+        @strong_typed(returns=str)
+        def test():
+            return "hello"
+        self.assertEqual("hello", test())
+
+        @strong_typed(str) # should return nothing
+        def test(a):
+            pass
+        self.assertEqual(None, test("hello"))
+
+        @strong_typed(str, returns=int)
+        def test(a):
+            return 42
+        self.assertEqual(42, test("hello"))
+
+    
+    def test_static_typed_ok_trivial_2(self):
+
+        @strong_typed(str, str) # should return nothing
         def test(a, b):
-            return a+b;
-        
+            pass
+        self.assertEqual(None, test("hello", "world"))
+    
+        @strong_typed(str, int) # should return nothing
+        def test(a, b):
+            pass
+        self.assertEqual(None, test("hello", 42))
 
-        
+        @strong_typed(str, str, returns=int)
+        def test(a, b):
+            return 42
+        self.assertEqual(42, test("hello", "world"))
+
+        @strong_typed(str, str, returns=(int, int))
+        def test(a, b):
+            return (42, 314)
+        self.assertEqual((42, 314), test("hello", "world"))
+
+    ########################################################
+    # NOK
+
+    def test_static_typed_nok_degenerated(self):
+        @strong_typed()
+        def test():
+            pass
         with self.assertRaises(AssertionError):
-            xy = test('x', 1)
-            print(xy)
+            x = test('x')
 
-        @static_typed(str, str, returns=str) 
-        def test2(a, b):
-            return 42;
+        @strong_typed()
+        def test():
+            return 42
+        with self.assertRaises(AssertionError):
+            x = test()
+            
+    def test_static_typed_nok_trivial(self):
+        @strong_typed(returns=int)
+        def test():
+            pass
+        with self.assertRaises(AssertionError):
+            x = test()
+    
+        @strong_typed(returns=int)
+        def test():
+            return "hello"
+        with self.assertRaises(AssertionError):
+            x = test()
 
-        xy = test2("x")
-        
+        @strong_typed(str) # should return nothing
+        def test(a):
+            return 42
+        with self.assertRaises(AssertionError):
+            x = test()
 
+        @strong_typed(str) # should return nothing
+        def test(a):
+            pass
+        with self.assertRaises(AssertionError):
+            x = test(42)
 
+        # brak both
+        @strong_typed(str) # should return nothing
+        def test(a):
+            return 42
+        with self.assertRaises(AssertionError):
+            x = test(42)
+
+        # one in one out
+        @strong_typed(str, returns=int)
+        def test(a):
+            return 42
+        with self.assertRaises(AssertionError):
+            x = test(42)
+
+        @strong_typed(str, returns=int)
+        def test(a):
+            return "hello"
+        with self.assertRaises(AssertionError):
+            x = test("hello")
+
+        @strong_typed(str, returns=int)
+        def test(a):
+            return "hello"
+        with self.assertRaises(AssertionError):
+            x = test(42)
+
+    
+    def test_static_typed_nok_trivial_2(self):
+
+        @strong_typed(int, int)
+        def test(a, b):
+            pass
+        with self.assertRaises(AssertionError):
+            x = test()
+    
+        @strong_typed(int, int)
+        def test(a, b):
+            pass
+        with self.assertRaises(AssertionError):
+            x = test(42)
+    
+        @strong_typed(int, int)
+        def test(a, b):
+            return "hello"
+        with self.assertRaises(AssertionError):
+            x = test(42, 32)
+
+        @strong_typed(int, int)
+        def test(a, b):
+            pass
+        with self.assertRaises(AssertionError):
+            x = test(42, "hello")
+
+        @strong_typed(int, int)
+        def test(a, b):
+            pass
+        with self.assertRaises(AssertionError):
+            x = test("hello", 42)

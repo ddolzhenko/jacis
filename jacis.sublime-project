@@ -4,8 +4,8 @@
         {
             "name": "Test jacis",
             "working_dir": "${project_path}",
-            "file_regex": "(?s)File \"(..+)\", line (\\d+).*\\n.*Error: (.+$)",
-            // "line_regex": "^.*Error: .*",
+            // "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*$",
+            "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*,.*$",
             "selector": "source.yaml, source.python, source.json",
 
 

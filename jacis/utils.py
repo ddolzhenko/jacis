@@ -34,12 +34,54 @@ import subprocess
 import checksumdir
 import shutil
 import stat
+import unittest
+import collections
+
+#-------------------------------------------------------------------------------
+# tests
+
+
+class TestCase(unittest.TestCase):
+    
+    def assertPredicate(self, p, x, msg=""):
+        if not p(x):
+            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
+
+    
+
 
 #-------------------------------------------------------------------------------
 
 # types:
-def static_typeded():
-    pass
+def _type_call_error(msg, expected, recieved, values):
+    j = lambda x: join(x, ', ')
+    line = msg+":\n{0}expected: {1}\n{0}recieved: {2}\n{0}values:   {3}".format(' '*4, j(expected), j(recieved), j(values))
+    return line
+
+
+def strong_typed(*expected_types, returns=None): 
+    def decorator(f):
+        def check_types(*args, **kvargs):
+            if args:
+                recieved = list(map(type, args))
+                assert recieved == expected_types, _type_call_error('wrong arguments', expected_types, recieved, args)
+            elif kvargs:
+                assert False, 'complex types not yet supported'
+
+            result = f(*args, **kvargs)
+            assert type(result) == returns, 'wrong result type, expected: ' + str(returns)
+
+        return check_types
+    return decorator
+
+#-------------------------------------------------------------------------------
+# string utils
+
+def join(what, delimiter=" "):
+    assert isinstance(delimiter, str)
+    if isinstance(what,  collections.Iterable):
+        return delimiter.join(map(str, what))
+    return str(what)
 
 #-------------------------------------------------------------------------------
 
