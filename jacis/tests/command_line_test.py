@@ -58,4 +58,23 @@ class InternalCommands(unittest.TestCase):
             raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
     
     def test_full_repo(self):
-        pass
+        
+        def prefixed(pref):
+            def decorate(f):
+                def decorator(*args, **kvargs):
+                    print(pref)
+                    r = f(*args, **kvargs)
+                    print(pref)
+                return decorator
+            return decorate
+
+
+        @prefixed("---")
+        def foo(a, b):
+            print (a)
+            print (b)
+
+        a = 2
+        b = 3
+
+        foo(a, b)
