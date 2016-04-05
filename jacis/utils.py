@@ -62,8 +62,8 @@ def get_public_module_names(init_file):
     return (x for x in get_module_names(init_file) if not x.startswith('_'))
 
 #-------------------------------------------------------------------------------
-
 # types:
+
 def _type_call_error(msg, expected, recieved, values):
     j = lambda x: join(x, ', ')
     line = msg+":\n{0}expected: {1}\n{0}recieved: {2}\n{0}values:   {3}".format(' '*4, j(expected), j(recieved), j(values))

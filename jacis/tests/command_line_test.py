@@ -48,17 +48,24 @@ class InternalCommands(utils.TestCase):
     def test_full_repo(self):
         
         # import jacis
+        from jacis import version
         import jacis.plugins
-        
-        print ("\n".join(map(str, jacis.plugins.get_plugins(jacis))))
-        # print ("\n".join(map(str, map(type, inspect.getmembers(jacis)[1]))))
-        # print(inspect.ismodule(jacis))
+        import sys
+        # print ("\n".join(map(str, jacis.plugins.get_plugins(jacis))))
 
-        # parser = argparse.ArgumentParser(prog=version.program_name, description=version.program_full_name)
-        # x = parser.add_subparsers('init', help="initialize jacis")
-        # x.add_parser()
-        # init = parser.add_subparsers('init', help="initialize jacis")
-        # args = parser.parse_args()
+        import argparse
+        commands = (x[0] for x in jacis.plugins.get_plugins())
+        parser = argparse.ArgumentParser(description=version.program_full_name)
+        parser.add_argument('command', help='valid commands: {}'.format(','.join(commands)))
+        
+        # args = parser.parse_args(["init", "./jacis"])
+        # args = parser.parse_args(["init"])
+        args = parser.parse_args(["-h"])
+
+        print(args)
+
+
+
 
 
 
