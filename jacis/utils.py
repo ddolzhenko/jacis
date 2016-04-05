@@ -51,6 +51,17 @@ class TestCase(unittest.TestCase):
 
 
 #-------------------------------------------------------------------------------
+# modules
+def get_module_names(init_file):
+    import glob
+    from os.path import dirname, basename, isfile, splitext
+    pys = glob.glob(dirname(init_file) + "/*.py")
+    return (splitext(basename(py))[0] for py in pys if isfile(py))
+
+def get_public_module_names(init_file):
+    return (x for x in get_module_names(init_file) if not x.startswith('_'))
+
+#-------------------------------------------------------------------------------
 
 # types:
 def _type_call_error(msg, expected, recieved, values):

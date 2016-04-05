@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Command line interface tests
+"""Plugin loader
 """
 
 #-------------------------------------------------------------------------------
@@ -29,37 +29,18 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import os
-from jacis import utils
 
 #-------------------------------------------------------------------------------
 
-class InternalCommands(utils.TestCase):
-    
-    def setUp(self):
-        utils.temp_work_dir()
+def get_plugins(root):
+    import inspect
+    members = (x for x in inspect.getmembers(root))
+    modules = (x for x in members if inspect.ismodule(x[1]))
+    plugins = (x for x in modules if hasattr(x[1], "__jacis_plugin"))
+    return plugins
 
-    def tearDown(self):
-        pass
+class PluginBase:
+    def argument_parser(self):
+        return argparse.ArgumentParser()
+       
 
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def test_full_repo(self):
-        
-        # import jacis
-        import jacis.plugins
-        
-        print ("\n".join(map(str, jacis.plugins.get_plugins(jacis))))
-        # print ("\n".join(map(str, map(type, inspect.getmembers(jacis)[1]))))
-        # print(inspect.ismodule(jacis))
-
-        # parser = argparse.ArgumentParser(prog=version.program_name, description=version.program_full_name)
-        # x = parser.add_subparsers('init', help="initialize jacis")
-        # x.add_parser()
-        # init = parser.add_subparsers('init', help="initialize jacis")
-        # args = parser.parse_args()
-
-
-
-                

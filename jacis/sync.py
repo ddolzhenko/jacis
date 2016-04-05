@@ -32,9 +32,15 @@ __email__  = "d.dolzhenko@gmail.com"
 import os
 import git
 
-from jacis import utils
+# import plugins
 
 #-------------------------------------------------------------------------------
+
+# class _Plugin(JacisPlugin):
+#     def argument_parser():
+#         return argparse.ArgumentParser()
+        
+# __jacis_plugin = _Plugin()
 
 def sync(url, local_dir):
     git.Repo.clone_from(url, local_dir)

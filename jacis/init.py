@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Command line interface tests
+"""Init subcommand
 """
 
 #-------------------------------------------------------------------------------
@@ -30,36 +30,18 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-from jacis import utils
+import jacis.plugins
 
 #-------------------------------------------------------------------------------
 
-class InternalCommands(utils.TestCase):
-    
-    def setUp(self):
-        utils.temp_work_dir()
-
-    def tearDown(self):
-        pass
-
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def test_full_repo(self):
+class _Plugin(jacis.plugins.PluginBase):
+    def argument_parser(self):
+        return argparse.ArgumentParser()
         
-        # import jacis
-        import jacis.plugins
-        
-        print ("\n".join(map(str, jacis.plugins.get_plugins(jacis))))
-        # print ("\n".join(map(str, map(type, inspect.getmembers(jacis)[1]))))
-        # print(inspect.ismodule(jacis))
+__jacis_plugin = _Plugin()
 
-        # parser = argparse.ArgumentParser(prog=version.program_name, description=version.program_full_name)
-        # x = parser.add_subparsers('init', help="initialize jacis")
-        # x.add_parser()
-        # init = parser.add_subparsers('init', help="initialize jacis")
-        # args = parser.parse_args()
+#-------------------------------------------------------------------------------
 
+def init():
+    print ("!!")
 
-
-                
