@@ -37,12 +37,11 @@ import jacis
 from jacis import utils, plugins
 
 import sys
-print(sys.path)
 
 #-------------------------------------------------------------------------------
 
 class BaseTestCase(unittest.TestCase):
-    
+
     def setUp(self):
         self.prev_work_dir = os.getcwd()
         self.work_dir = tempfile.mkdtemp()
@@ -62,7 +61,7 @@ class BaseTestCase(unittest.TestCase):
     def assertPredicate(self, p, x, msg=""):
         if not p(x):
             raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
-    
+
     def test_full_repo(self):
         for url, data in self.repos.items():
             with self.subTest(url=url):
