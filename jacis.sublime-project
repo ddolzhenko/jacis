@@ -7,28 +7,19 @@
             // "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*$",
             "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*,.*",
             "selector": "source.yaml, source.python, source.json",
-
-
-            "windows": {
-                "cmd": ["python", "-m", "unittest", "discover", "-v", "jacis/tests", "*_test.py"]
-            },
-
-            "osx" : {
-                "cmd": ["echo", "not yet supported"]
-            },
+            "cmd": ["python", "-m", "unittest", "discover", "-v", "jacis/tests", "*_test.py"],
             
             "variants":
             [
                 {
                     "name": "Run single file from project root",
+                    "cmd": ["python", "-m", "unittest", "jacis.tests.$file_base_name"],
                     
-                    "windows": {
-                        "cmd": ["python", "-m", "unittest", "jacis.tests.$file_base_name"]
-                    },
+                },
 
-                    "osx" : {
-                        "cmd": ["python", "-m", "unittest", "jacis.tests.$file_base_name"]
-                    },
+                {
+                    "name": "Run jacis init ./temp --demo",
+                    "cmd": ["python", "jacis", "init"],
                 }
             ]
         },

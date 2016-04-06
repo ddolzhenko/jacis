@@ -29,6 +29,8 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
+sys.path.append('jacis')
+
 import os
 from jacis import utils
 
@@ -46,27 +48,27 @@ class InternalCommands(utils.TestCase):
         return "{}. CWD: '{}'".format(msg, self.work_dir)
 
     def test_full_repo(self):
+
+
         
         # import jacis
         from jacis import version
         import jacis.plugins
         import sys
+        
+        print(sys.path)
         # print ("\n".join(map(str, jacis.plugins.get_plugins(jacis))))
 
         import argparse
-        commands = (x[0] for x in jacis.plugins.get_plugins())
+        commands = dict(jacis.plugins.get_plugins())
         parser = argparse.ArgumentParser(description=version.program_full_name)
-        parser.add_argument('command', help='valid commands: {}'.format(','.join(commands)))
-        
-        # args = parser.parse_args(["init", "./jacis"])
-        # args = parser.parse_args(["init"])
-        args = parser.parse_args(["-h"])
+        parser.add_argument('command', help='valid commands: {}'.format(','.join(commands.keys())))
 
+        args = parser.parse_args(["init"])
         print(args)
 
-
-
-
-
-
+        if args.command not in commands:
+            print("unknown command: " + args.command)
+        else:
+            commands[args.command].jacis_plugin(sys.argv[2:])
                 

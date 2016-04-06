@@ -34,11 +34,10 @@ import jacis.plugins
 
 #-------------------------------------------------------------------------------
 
-class _Plugin(jacis.plugins.PluginBase):
-    def argument_parser(self):
-        return argparse.ArgumentParser()
         
-__jacis_plugin = _Plugin()
+def jacis_plugin(args):
+    print("Hi I'm : " + __name__)
+    pass
 
 #-------------------------------------------------------------------------------
 

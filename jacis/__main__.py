@@ -30,22 +30,29 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import argparse
+import sys
+
+print(sys.path)
+
+# import jacis
+import plugins
+# from jacis import version
+import version
 
 #-------------------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser()
-   
-    parser.add_argument("update", help="Copies or updates folder from external source")
-    parser.add_argument("sync", help="Synchronizes external folder with local one")
+    commands = dict(jacis.plugins.get_plugins())
+    parser = argparse.ArgumentParser(description=version.program_full_name)
+    valid = 'valid commands: {}'.format(','.join(commands.keys()))
+    parser.add_argument('command', help=valid)
 
-    args = parser.parse_args()
-
-    print(args.update)
-  
+    args = parser.parse_args(sys.argv[1:2])
+    if args.command not in commands:
+        print("unknown command: " + args.command)
+    else:
+        commands[args.command].jacis_plugin(sys.argv[2:])
+              
 
 if __name__ == "__main__":
-    import sys
-    print("call: '{}'".format(" ".join(sys.argv)))
     main()
-    print("\n>end<\n")

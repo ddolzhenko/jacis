@@ -29,7 +29,8 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import jacis
+# import jacis
+print (__name__)
 
 #-------------------------------------------------------------------------------
 
@@ -37,7 +38,7 @@ def get_plugins():
     import inspect
     members = (x for x in inspect.getmembers(jacis))
     modules = (x for x in members if inspect.ismodule(x[1]))
-    plugins = (x for x in modules if hasattr(x[1], "__jacis_plugin"))
+    plugins = (x for x in modules if hasattr(x[1], "jacis_plugin"))
     return plugins
 
 class PluginBase:
