@@ -38,7 +38,6 @@ import importlib
 #-------------------------------------------------------------------------------
 
 __self_path = os.path.dirname(__file__)
-
 def get_self_path():
     return __self_path
 

@@ -31,19 +31,21 @@ __email__  = "d.dolzhenko@gmail.com"
 
 import os
 import git
-
-# import plugins
+import argparse
 
 #-------------------------------------------------------------------------------
 
-# class _Plugin(JacisPlugin):
-#     def argument_parser():
-#         return argparse.ArgumentParser()
-        
-# __jacis_plugin = _Plugin()
+def jacis_plugin(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', help='git url')
+    parser.add_argument('dir', help='local dir')
+
+    args = parser.parse_args(argv)
+
+    sync(args.url, args.dir)
+
 
 def sync(url, local_dir):
     git.Repo.clone_from(url, local_dir)
 
 
-    

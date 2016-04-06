@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Imports
+"""Plugins auto import
 """
 
 #-------------------------------------------------------------------------------
@@ -31,6 +31,6 @@ __email__  = "d.dolzhenko@gmail.com"
 
 import jacis.utils
 
-__all__ = jacis.utils.get_public_module_names(__file__) 
+__all__ = jacis.utils.get_public_module_names(__file__)
 
 #-------------------------------------------------------------------------------
