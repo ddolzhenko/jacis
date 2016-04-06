@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Plugin loader
+"""Main entry point to jacis command line
 """
 
 #-------------------------------------------------------------------------------
@@ -29,20 +29,24 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-# import jacis
-print (__name__)
+import argparse
+import sys
+
+from jacis import core
+from jacis import version
 
 #-------------------------------------------------------------------------------
 
-def get_plugins():
-    import inspect
-    members = (x for x in inspect.getmembers(jacis))
-    modules = (x for x in members if inspect.ismodule(x[1]))
-    plugins = (x for x in modules if hasattr(x[1], "jacis_plugin"))
-    return plugins
+def main():
+    commands = core.get_plugins()
+    parser = argparse.ArgumentParser(description=version.program_full_name)
+    valid = 'valid commands: {}'.format(','.join(commands.keys()))
+    parser.add_argument('command', help=valid)
 
-class PluginBase:
-    def argument_parser(self):
-        return argparse.ArgumentParser()
-       
-
+    args = parser.parse_args(sys.argv[1:2])
+    if args.command not in commands:
+        print("unknown command: " + args.command)
+        print(valid)
+    else:
+        commands[args.command].jacis_plugin(sys.argv[2:])
+              

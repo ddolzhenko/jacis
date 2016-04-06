@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""sync module test
+"""Init subcommand
 """
 
 #-------------------------------------------------------------------------------
@@ -30,39 +30,14 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import unittest
-import tempfile
-from jacis import sync, utils
 
 #-------------------------------------------------------------------------------
 
-class BaseTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        self.prev_work_dir = os.getcwd()
-        self.work_dir = tempfile.mkdtemp()
-        os.chdir(self.work_dir)
+def jacis_plugin(argv):
+    print("Hi I'm: {} {}".format(__name__, argv))
 
-        self.repos = {
-            "https://github.com/ddolzhenko/TestGit.git" : dict(name="git-http", hash="aaea772d08e46f700797a79615bb566b1254b48b"),
-            }
+#-------------------------------------------------------------------------------
 
-    def tearDown(self):
-        os.chdir(self.prev_work_dir)
-        utils.rmdir(self.work_dir)
+def init():
+    print ("!!")
 
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def assertPredicate(self, p, x, msg=""):
-        if not p(x):
-            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
-    
-    def test_full_repo(self):
-        for url, data in self.repos.items():
-            with self.subTest(url=url):
-                repo = data["name"]
-                sync.sync(url, repo)
-                self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
-                with utils.work_dir(repo):
-                    self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))

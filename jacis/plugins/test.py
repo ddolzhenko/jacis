@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""Tests runner
 """
 
 #-------------------------------------------------------------------------------
@@ -29,8 +29,12 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import jacis.utils
-__all__ = jacis.utils.get_public_module_names(__file__) 
+import unittest
+import jacis.core
 
 #-------------------------------------------------------------------------------
+
+def jacis_plugin(argv):
+    suite  = jacis.core.get_tests()
+    runner.run(suite)
 

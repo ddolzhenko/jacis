@@ -36,13 +36,13 @@ from jacis.utils import strong_typed
 #-------------------------------------------------------------------------------
 
 class TypeDecorators(utils.TestCase):
-    
+
     def test_static_typed_ok_degenerated(self):
         @strong_typed()
         def test():
             pass
         self.assertEqual(None, test())
-        
+
 
     def test_static_typed_ok_trivial(self):
         @strong_typed(returns=str)
@@ -60,14 +60,14 @@ class TypeDecorators(utils.TestCase):
             return 42
         self.assertEqual(42, test("hello"))
 
-    
+
     def test_static_typed_ok_trivial_2(self):
 
         @strong_typed(str, str) # should return nothing
         def test(a, b):
             pass
         self.assertEqual(None, test("hello", "world"))
-    
+
         @strong_typed(str, int) # should return nothing
         def test(a, b):
             pass
@@ -92,14 +92,14 @@ class TypeDecorators(utils.TestCase):
             return 42
         with self.assertRaises(AssertionError):
             x = test()
-            
+
     def test_static_typed_nok_trivial(self):
         @strong_typed(returns=int)
         def test():
             pass
         with self.assertRaises(AssertionError):
             x = test()
-    
+
         @strong_typed(returns=int)
         def test():
             return "hello"
@@ -138,7 +138,7 @@ class TypeDecorators(utils.TestCase):
         with self.assertRaises(AssertionError):
             x = test(42)
 
-    
+
     def test_static_typed_nok_trivial_2(self):
         @strong_typed(int, int)
         def test(a, b):

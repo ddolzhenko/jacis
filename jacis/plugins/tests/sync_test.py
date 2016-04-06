@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Command line interface tests
+"""sync module test
 """
 
 #-------------------------------------------------------------------------------
@@ -29,46 +29,45 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-sys.path.append('jacis')
-
 import os
-from jacis import utils
+import unittest
+import tempfile
+
+import jacis
+from jacis import utils, plugins
+
+import sys
+print(sys.path)
 
 #-------------------------------------------------------------------------------
 
-class InternalCommands(utils.TestCase):
+class BaseTestCase(unittest.TestCase):
     
     def setUp(self):
-        utils.temp_work_dir()
+        self.prev_work_dir = os.getcwd()
+        self.work_dir = tempfile.mkdtemp()
+        os.chdir(self.work_dir)
+
+        self.repos = {
+            "https://github.com/ddolzhenko/TestGit.git" : dict(name="git-http", hash="aaea772d08e46f700797a79615bb566b1254b48b"),
+            }
 
     def tearDown(self):
-        pass
+        os.chdir(self.prev_work_dir)
+        jacis.utils.rmdir(self.work_dir)
 
     def cute(self, msg):
         return "{}. CWD: '{}'".format(msg, self.work_dir)
 
+    def assertPredicate(self, p, x, msg=""):
+        if not p(x):
+            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
+    
     def test_full_repo(self):
-
-
-        
-        # import jacis
-        from jacis import version
-        import jacis.plugins
-        import sys
-        
-        print(sys.path)
-        # print ("\n".join(map(str, jacis.plugins.get_plugins(jacis))))
-
-        import argparse
-        commands = dict(jacis.plugins.get_plugins())
-        parser = argparse.ArgumentParser(description=version.program_full_name)
-        parser.add_argument('command', help='valid commands: {}'.format(','.join(commands.keys())))
-
-        args = parser.parse_args(["init"])
-        print(args)
-
-        if args.command not in commands:
-            print("unknown command: " + args.command)
-        else:
-            commands[args.command].jacis_plugin(sys.argv[2:])
-                
+        for url, data in self.repos.items():
+            with self.subTest(url=url):
+                repo = data["name"]
+                jacis.plugins.sync.sync(url, repo)
+                self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
+                with utils.work_dir(repo):
+                    self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))

@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""Plugin loader
 """
 
 #-------------------------------------------------------------------------------
@@ -29,30 +29,42 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import argparse
-import sys
-
-print(sys.path)
-
-# import jacis
-import plugins
-# from jacis import version
-import version
+import os
+import inspect
+import unittest
+import glob
+import importlib
 
 #-------------------------------------------------------------------------------
 
-def main():
-    commands = dict(jacis.plugins.get_plugins())
-    parser = argparse.ArgumentParser(description=version.program_full_name)
-    valid = 'valid commands: {}'.format(','.join(commands.keys()))
-    parser.add_argument('command', help=valid)
+__self_path = os.path.dirname(__file__)
 
-    args = parser.parse_args(sys.argv[1:2])
-    if args.command not in commands:
-        print("unknown command: " + args.command)
-    else:
-        commands[args.command].jacis_plugin(sys.argv[2:])
-              
+def get_self_path():
+    return __self_path
 
-if __name__ == "__main__":
-    main()
+from jacis.plugins import *
+def get_plugins():
+    from jacis import plugins
+    members = (x for x in inspect.getmembers(plugins))
+    modules = (x for x in members if inspect.ismodule(x[1]))
+    plugins = (x for x in modules if hasattr(x[1], "jacis_plugin"))
+    return dict(plugins)
+
+def get_test_module_names():
+    mask = '**/*_test.py'
+    for filename in glob.iglob(mask, recursive=True):
+        name = os.path.splitext(filename)[0]
+        module_name = name.replace('\\', '.').replace('/', '.')
+        yield module_name
+
+def get_tests():
+    suite = unittest.TestSuite()
+    loader = unittest.TestLoader()
+
+    for module_name in get_test_module_names():
+        module = importlib.import_module(module_name)
+        tests = loader.loadTestsFromModule(module)
+        suite.addTests(tests)
+
+    return suite
+
