@@ -114,6 +114,23 @@ def checksum(path):
     """Directory sha1 checksum"""
     return checksumdir.dirhash(path, 'sha1')
 
+def split_path_all(path):
+    norm = os.path.normpath(path)
+    return norm.split(os.sep)
+
+def mktree(path):
+    '''Creates not only last folder in path but all
+    for mktree('1/2/3')
+    will create 1/
+                1/2
+                1/2/3
+    '''
+    folders = split_path_all(path)
+    for i, folder in enumerate(folders):
+        f = os.sep.join(folders[:i+1])
+        if not os.path.isdir(f):
+            os.mkdir(f)
+
 
 def rmdir(path):
     """Forced directory remove"""

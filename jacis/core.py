@@ -34,15 +34,61 @@ import inspect
 import unittest
 import glob
 import importlib
+import logging
+
+from jacis import utils
 
 #-------------------------------------------------------------------------------
+
+def __setup_root_logger(name):
+    # create logger
+    logger = logging.getLogger(name)
+    # logger.setLevel(logging.WARNING)
+
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    # ch.setLevel(logging.WARNING)
+
+    # create formatter
+    formatter = logging.Formatter('%(name)s>>%(levelname)8s: %(message)s')
+    ch.setFormatter(formatter)
+
+    # add ch to logger
+    logger.addHandler(ch)
+
+    return logger
+
+__root_logger = __setup_root_logger('jacis')
+
+def get_logger(name, verbosity=0):
+    logger = logging.getLogger(name)
+    if verbosity>= 2:
+        logger.setLevel(logging.DEBUG)
+    elif verbosity== 1:
+        logger.setLevel(logging.INFO)
+    elif verbosity== 0:
+        logger.setLevel(logging.WARNING)
+    else:
+        assert verbosity>= 0, 'invalid logger verbosity'
+    return logger
 
 __self_path = os.path.dirname(__file__)
 def get_self_path():
     return __self_path
 
-def get_global_dir():
-    return os.path.join(utils.home_dir(), '.jacis')
+###############################################################################
+# dir
+
+def jacis_dir():
+    j = '.jacis'
+    return j
+
+def jacis_global_dir():
+    j = '.jacis'
+    return os.path.join(utils.home_dir(), j)
+
+###############################################################################
+# plugins and tests
 
 from jacis.plugins import *
 def get_plugins():

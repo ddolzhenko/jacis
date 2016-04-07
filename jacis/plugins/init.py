@@ -29,15 +29,69 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import os
+import os, sys
+import argparse
+import jacis
+from jacis import core, utils, config
+
+log = core.get_logger(__name__)
 
 #-------------------------------------------------------------------------------
+
+class Error(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
+
 
 def jacis_plugin(argv):
-    print("Hi I'm: {} {}".format(__name__, argv))
+    try:
+        parser = argparse.ArgumentParser(prog='init')
+        parser.add_argument('-v', '--verbose',
+            action='count', default=0, help='verbose level')
+        parser.add_argument('-c', '--clean',
+            action='store_true', default=False, help='clean previous one. Kills all previous data')
+        args = parser.parse_args(argv)
+
+        # Update logger
+        global log
+        log = core.get_logger(__name__, args.verbose)
+
+
+        log.debug("Hi I'm: {} {}".format(__name__, argv))
+        log.debug("Parsed args: {}".format(args))
+
+        init(clean=args.clean)
+
+    except Error as e:
+        log.error(e)
+        sys.exit(1)
+    except Exception as e:
+        log.critical(e)
+        raise
 
 #-------------------------------------------------------------------------------
 
-def init():
-    print ("!!")
+def init(clean=False):
+    from os import mkdir
+    from os.path import isdir, join
+    from jacis.utils import mktree, rmdir
+
+    home = core.jacis_dir()
+
+    if clean:
+        rmdir(home)
+
+    if os.path.isdir(home):
+        raise Error("can't init {}. it's already there".format(home))
+
+    mktree(join(home, 'cache'))
+    config = jacis.config.Config()
+    config.dump_file()
+
+
+class Test(utils.TestCase):
+
+    def test_1(self):
+        jacis_plugin(['-vvvvv', '--clean'])
+
 
