@@ -45,20 +45,18 @@ import sys
 class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
-        self.prev_work_dir = os.getcwd()
-        self.work_dir = tempfile.mkdtemp()
-        os.chdir(self.work_dir)
+        self.tmp = utils.temp_work_dir()
+        self.tmp.__enter__()
 
         self.repos = {
             "https://github.com/ddolzhenko/TestGit.git" : dict(name="git-http", hash="aaea772d08e46f700797a79615bb566b1254b48b"),
             }
 
     def tearDown(self):
-        os.chdir(self.prev_work_dir)
-        jacis.utils.rmdir(self.work_dir)
+        self.tmp.__exit__()
 
     def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
+        return "{}. CWD: '{}'".format(msg, self.tmp)
 
     def assertPredicate(self, p, x, msg=""):
         if not p(x):

@@ -36,12 +36,13 @@ import shutil
 import stat
 import unittest
 import collections
+import tempfile
 
 #-------------------------------------------------------------------------------
 # tests
 
 class TestCase(unittest.TestCase):
-    
+
     def assertPredicate(self, p, x, msg=""):
         if not p(x):
             raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
@@ -68,7 +69,7 @@ def _type_call_error(msg, expected, recieved, values):
     return line
 
 
-def strong_typed(*expected_types, returns=type(None)): 
+def strong_typed(*expected_types, returns=type(None)):
     def decorator(f):
         def check_types(*args, **kvargs):
             if args:
@@ -80,7 +81,7 @@ def strong_typed(*expected_types, returns=type(None)):
 
             result = f(*args, **kvargs)
             assert type(result) == returns, 'wrong result type, expected: {}, recieved: {}'.format(returns, type(result))
-            
+
             return result
 
         return check_types
@@ -110,13 +111,13 @@ def rmdir(path):
             func(path)
         else:
             raise
-    
+
     shutil.rmtree(path, onerror=onerror)
 
-    
+
 class work_dir(object):
     """change working dir within 'with' context
-    Usage: 
+    Usage:
         with workdir('otherdir/foo/'):
             print(os.getcwd())
         print(os.getcwd()) # oldone
@@ -130,7 +131,7 @@ class work_dir(object):
     @property
     def previous(self):
         return self._previous
-    
+
     @property
     def current(self):
         return self._current
@@ -150,20 +151,20 @@ class work_dir(object):
 
 
 class temp_work_dir:
-    
+
     def __enter__(self):
         self._work_dir = work_dir(tempfile.mkdtemp())
-        self._work_dir.__enter__(tmp)
+        self._work_dir.__enter__()
 
     def __exit__(self, *args):
         tmp = self._work_dir.current
-        self._work_dir.__exit__(tmp)
+        self._work_dir.__exit__()
         rmdir(tmp)
         self._work_dir = None
 
     def __str__(self):
         return str(self._work_dir)
-    
+
 
 def system_call(*args, timeout=10):
     return subprocess.run(args, timeout=timeout)
