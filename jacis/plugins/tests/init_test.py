@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Plugin loader
+"""Init command
 """
 
 #-------------------------------------------------------------------------------
@@ -30,43 +30,24 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import inspect
-import unittest
-import glob
-import importlib
+import jacis
+from jacis import utils
+from jacis.plugins import init
 
 #-------------------------------------------------------------------------------
 
-__self_path = os.path.dirname(__file__)
-def get_self_path():
-    return __self_path
+class BaseTestCase(utils.TestCase):
 
-def get_global_dir():
-    return os.path.join(utils.home_dir(), '.jacis')
+    def setUp(self):
+        self.tmp = utils.temp_work_dir()
+        self.tmp.__enter__()
 
-from jacis.plugins import *
-def get_plugins():
-    from jacis import plugins
-    members = (x for x in inspect.getmembers(plugins))
-    modules = (x for x in members if inspect.ismodule(x[1]))
-    plugins = (x for x in modules if hasattr(x[1], "jacis_plugin"))
-    return dict(plugins)
+    def tearDown(self):
+        self.tmp.__exit__()
 
-def get_test_module_names():
-    mask = '**/*_test.py'
-    for filename in glob.iglob(mask, recursive=True):
-        name = os.path.splitext(filename)[0]
-        module_name = name.replace('\\', '.').replace('/', '.')
-        yield module_name
+    def cute(self, msg):
+        return "{}. CWD: '{}'".format(msg, self.tmp)
 
-def get_tests():
-    suite = unittest.TestSuite()
-    loader = unittest.TestLoader()
 
-    for module_name in get_test_module_names():
-        module = importlib.import_module(module_name)
-        tests = loader.loadTestsFromModule(module)
-        suite.addTests(tests)
-
-    return suite
-
+    def test_full_repo(self):
+        return

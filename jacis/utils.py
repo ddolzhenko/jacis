@@ -97,6 +97,18 @@ def join(what, delimiter=" "):
     return str(what)
 
 #-------------------------------------------------------------------------------
+# system
+
+def im_on_windows():
+    return os.name == 'nt'
+
+#-------------------------------------------------------------------------------
+# folders
+def home_dir():
+    if im_on_windows():
+        return os.environ['USERPROFILE']
+
+    return os.path.expanduser('~')
 
 def checksum(path):
     """Directory sha1 checksum"""
