@@ -30,19 +30,13 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import unittest
-import tempfile
-
 import jacis
 from jacis import utils
 from jacis.plugins import sync
 
-
-import sys
-
 #-------------------------------------------------------------------------------
 
-class BaseTestCase(unittest.TestCase):
+class BaseTestCase(utils.TestCase):
 
     def setUp(self):
         self.tmp = utils.temp_work_dir()
@@ -57,10 +51,6 @@ class BaseTestCase(unittest.TestCase):
 
     def cute(self, msg):
         return "{}. CWD: '{}'".format(msg, self.tmp)
-
-    def assertPredicate(self, p, x, msg=""):
-        if not p(x):
-            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
 
     def test_full_repo(self):
         for url, data in self.repos.items():
