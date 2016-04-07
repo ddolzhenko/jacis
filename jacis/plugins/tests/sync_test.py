@@ -34,7 +34,9 @@ import unittest
 import tempfile
 
 import jacis
-from jacis import utils, plugins
+from jacis import utils
+from jacis.plugins import sync
+
 
 import sys
 
@@ -66,7 +68,7 @@ class BaseTestCase(unittest.TestCase):
         for url, data in self.repos.items():
             with self.subTest(url=url):
                 repo = data["name"]
-                jacis.plugins.sync.sync(url, repo)
+                sync.sync(url, repo)
                 self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
                 with utils.work_dir(repo):
                     self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))

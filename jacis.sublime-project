@@ -8,7 +8,7 @@
             "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*,.*",
             "selector": "source.yaml, source.python, source.json",
 
-            "cmd": ["python", "-m", "unittest", "jacis.tests.$file_base_name"],
+            "cmd": ["python", "-m", "unittest", "$file"],
 
             "variants":
             [
