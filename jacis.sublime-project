@@ -2,40 +2,37 @@
     "build_systems":
     [
         {
-            "name": "Test jacis",
+            "name": "jacis",
             "working_dir": "${project_path}",
             // "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*$",
             "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*,.*",
             "selector": "source.yaml, source.python, source.json",
 
+            "cmd": ["python", "-m", "unittest", "$file"],
 
-            "windows": {
-                "cmd": ["python", "-m", "unittest", "discover", "-v", "jacis/tests", "*_test.py"]
-            },
-
-            "osx" : {
-                "cmd": ["echo", "not yet supported"]
-            },
-            
             "variants":
             [
                 {
-                    "name": "Run single file from project root",
-                    
-                    "windows": {
-                        "cmd": ["python", "-m", "unittest", "jacis.tests.$file_base_name"]
-                    },
+                    "name": "test",
+                    "cmd": ["python", "setup.py", "test"],
+                },
 
-                    "osx" : {
-                        "cmd": ["python", "-m", "unittest", "jacis.tests.$file_base_name"]
-                    },
-                }
+                {
+                    "name": "install",
+                    "cmd": ["python", "setup.py", "install"],
+                },
+
+                {
+                    "name": "clean",
+                    "cmd": ["python", "setup.py", "clean", "--all"],
+                },
+
             ]
         },
 
-        
+
     ],
-    
+
     "folders":
     [
         {
@@ -56,7 +53,8 @@
         "tab_size": 4,
         "translate_tabs_to_spaces": true,
         "trim_automatic_white_space": true,
+        "trim_trailing_white_space_on_save": true,
         "word_wrap": "false"
     }
-    
+
 }

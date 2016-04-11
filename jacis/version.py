@@ -19,50 +19,21 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""sync module test
+"""Version tools
 """
 
 #-------------------------------------------------------------------------------
 
 __author__ = "Dmitry Dolzhenko"
 __email__  = "d.dolzhenko@gmail.com"
-
+__version__ = 0.1
 #-------------------------------------------------------------------------------
 
 import os
-import unittest
-import tempfile
-from jacis import sync, utils
 
 #-------------------------------------------------------------------------------
 
-class BaseTestCase(unittest.TestCase):
-    
-    def setUp(self):
-        self.prev_work_dir = os.getcwd()
-        self.work_dir = tempfile.mkdtemp()
-        os.chdir(self.work_dir)
-
-        self.repos = {
-            "https://github.com/ddolzhenko/TestGit.git" : dict(name="git-http", hash="aaea772d08e46f700797a79615bb566b1254b48b"),
-            }
-
-    def tearDown(self):
-        os.chdir(self.prev_work_dir)
-        utils.rmdir(self.work_dir)
-
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def assertPredicate(self, p, x, msg=""):
-        if not p(x):
-            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
-    
-    def test_full_repo(self):
-        for url, data in self.repos.items():
-            with self.subTest(url=url):
-                repo = data["name"]
-                sync.sync(url, repo)
-                self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
-                with utils.work_dir(repo):
-                    self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))
+version         = __version__
+version_name    = str(version)
+program_name    = "Jacis"
+program_full_name = "{} version {}".format(program_name, version_name)

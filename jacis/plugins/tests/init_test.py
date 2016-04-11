@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""syncing tool
+"""Init command
 """
 
 #-------------------------------------------------------------------------------
@@ -30,14 +30,24 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import git
-
+import jacis
 from jacis import utils
+from jacis.plugins import init
 
 #-------------------------------------------------------------------------------
 
-def sync(url, local_dir):
-    git.Repo.clone_from(url, local_dir)
+class BaseTestCase(utils.TestCase):
+
+    def setUp(self):
+        self.tmp = utils.temp_work_dir()
+        self.tmp.__enter__()
+
+    def tearDown(self):
+        self.tmp.__exit__()
+
+    def cute(self, msg):
+        return "{}. CWD: '{}'".format(msg, self.tmp)
 
 
-    
+    def test_full_repo(self):
+        return
