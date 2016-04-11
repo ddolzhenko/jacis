@@ -29,6 +29,7 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
+import uuid
 import jacis
 
 #-------------------------------------------------------------------------------
@@ -40,13 +41,10 @@ class Error(Exception):
 
 
 
-
-
 def jacis_plugin(argv):
     try:
         parser = argparse.ArgumentParser(prog='install')
-        parser.add_argument("package", help="package name to install (eg: boost)")
-        parser.add_argument("version", help="version name to install (eg. 1.50)")
+        parser.add_argument("package", help="package name to install (eg: boost@1.5)")
         parser.add_argument('-v', '--verbose',
             action='count', default=0, help='verbose level')
         # parser.add_argument('-c', '--clean',
@@ -73,61 +71,111 @@ def jacis_plugin(argv):
         log.critical(e)
         raise
 
-        boost@1.5
-        1.5@boost
 
 #-------------------------------------------------------------------------------
-
-def install(package_id):
-    installed = load_installed_packages_info()
-    if package_id in installed:
-        raise Stop('already installed')
-
-    available = load_available_packages_info()
-    package = available[apackage_id]
-
-    cache(package)
-
-#-------------------------------------------------------------------------------
-
 from jacis.plugins import sync
 
-def cache_dir(realtive=''):
+def in_cache(realtive=''):
     return os.path.join(core.get_jacis.dir(), "cache", realtive)
 
 
-def load_available_packages_info():
-    local_path = cache_dir('repo')
-    local_list = cache_dir('repo/list.yml')
-    sync.auto_repo('git', "https://github.com/ddolzhenko/package_info.git", local=local_path, pull=True)
-    with open(local_list) as f:
-        return PackageList(yaml.load(f))
+def update_repo():
+    repo = sync.auto_repo('git', "https://github.com/ddolzhenko/package_info.git",
+        local=in_cache('repo'))
+    repo.pull()
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+
+def install(package_id):
+
+    update_repo()
+
+    installed = load_installed_packages_info(in_cache('installed/list.yml'))
+    if package_id in installed:
+        raise Stop('already installed')
+
+    available = load_available_packages_info(in_cache('repo/list.yml'))
+    if package_id not in available:
+        raise Error('unknown package: "{}"'.format(package_id))
+
+    installed.process(available[package_id])
 
 
-def load_installed_packages_info():
-    installed_list = cache_dir('installed.yml')
-    with open(installed_list) as f:
-        return PackageList(yaml.load(f))
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+def normalize_id(package_id):
+    return package_id
 
 
-class PackageInfo:
-    def __init__(self, path=''):
-        self._available = load_available_packages_info()
-        self._installed = load_installed_packages_info()
+class Package:
 
-    def have_local(package):
-        return package in self._local_packages
+    def __init__(self, pid, data):
+        self.pid = normalize_id(pid)
+        self.path = data['path']
+        self.hash = data['hash']
+
+    def process(self, path):
+        self.path = path
+        repo_type   = self._sync['type']
+        repo_url    = self._sync['url']
+        repo = sync.auto_repo(repo_type, repo_url, local=path)
+        repo.pull()
+
+        # build
+
+        self.hash = utils.checksum(self.path)
+        assert self.is_valid()
+
+    def is_valid(self):
+        return utils.checksum(self.path) == self.hash
 
 
 
-class PackagesCache:
-    def __init__(self):
-        remote_packages = load_remote()
-        my_packages = load_my()
+class PackageList:
+    def __init__(self, filename):
+        self.filename = filename
+        self._reload
+
+    def _reload(self):
+        with open(self. filename) as f:
+            self.db = yaml.load(f)
+
+    def _flush(self):
+        with open(self.filename, 'w') as f:
+            yaml.dump(self.db, f)
+
+    #operator in
+    def __contains__(self, package_id):
+        pid = normalize_id(package_id)
+        return pid in self.db
+
+    # operator[]
+    def __getitem__(self, package_id):
+        pid = normalize_id(package_id)
+        return Package(pid, self.db[pid])
+
+    # operator[] = value
+    @utils.static_typed(PackageList, str, Package)
+    def __setitem__(self, package_id, value):
+        pid = Package.normalize_id(package_id)
+        self.db[pid] = value
+
+    def process(self, package):
+        assert package.pid not in self
+
+        with utils.work_dir(in_cache('installed')):
+            store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, pid))
+            package.process(store_dir)
+
+        self[package.pid] = package
+        self._flush();
 
 
 
 class Test(utils.TestCase):
 
     def test_1(self):
-        PackagesInfo info(core.jacis_global_dir())
+        info(core.jacis_global_dir())
