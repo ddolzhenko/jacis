@@ -35,6 +35,12 @@ import argparse
 
 #-------------------------------------------------------------------------------
 
+class Error(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+
 def jacis_plugin(argv):
     parser = argparse.ArgumentParser()
     parser.add_argument('url', help='git url')
@@ -47,5 +53,28 @@ def jacis_plugin(argv):
 
 def sync(url, local_dir):
     git.Repo.clone_from(url, local_dir)
+
+
+@utils.strong_typed(str, str, str, str)
+def auto_repo(kind, remote_url, remote_dir, local_dir):
+    handlers = { 'git', GITRepo }
+
+    if kind not in handlers:
+        raise Error('unknown repo: ', kind)
+
+    Repo = handlers[kind]
+    return Repo(remote_url, remote_dir, local_dir)
+
+
+
+def git_repo(remote_url, remote_dir, local_dir):
+
+    git.Repo(local_dir)
+
+
+class GITRepo:
+    def __init__(self, arg):
+        self.arg = arg
+
 
 
