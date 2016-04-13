@@ -29,8 +29,10 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import uuid
+import os, uuid
+
 import jacis
+from jacis import core, utils, packages
 
 #-------------------------------------------------------------------------------
 
@@ -44,7 +46,7 @@ class Error(Exception):
 def jacis_plugin(argv):
     try:
         parser = argparse.ArgumentParser(prog='install')
-        parser.add_argument("package", help="package name to install (eg: boost@1.5)")
+        parser.add_argument("package", help="package name to install (eg: boost==1.5)")
         parser.add_argument('-v', '--verbose',
             action='count', default=0, help='verbose level')
         # parser.add_argument('-c', '--clean',
@@ -75,14 +77,15 @@ def jacis_plugin(argv):
 #-------------------------------------------------------------------------------
 from jacis.plugins import sync
 
-def in_cache(realtive=''):
-    return os.path.join(core.get_jacis.dir(), "cache", realtive)
+def in_cache(*relative):
+    return os.path.join(core.jacis_global_dir(), "cache", *relative)
 
 
 def update_repo():
-    repo = sync.auto_repo('git', "https://github.com/ddolzhenko/package_info.git",
-        local=in_cache('repo'))
-    repo.pull()
+    # repo = sync.auto_repo('git', "https://github.com/ddolzhenko/package_info.git",
+    #     local=in_cache('repo'))
+    # repo.pull()
+    pass
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -92,90 +95,23 @@ def install(package_id):
 
     update_repo()
 
-    installed = load_installed_packages_info(in_cache('installed/list.yml'))
+    installed = packages.LocalPackageList(in_cache('installed'))
     if package_id in installed:
         raise Stop('already installed')
 
-    available = load_available_packages_info(in_cache('repo/list.yml'))
+    available = packages.RepoPackageList(in_cache('repo'))
     if package_id not in available:
         raise Error('unknown package: "{}"'.format(package_id))
 
-    installed.process(available[package_id])
+    installed.install(available[package_id])
 
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
-#-------------------------------------------------------------------------------
-def normalize_id(package_id):
-    return package_id
-
-
-class Package:
-
-    def __init__(self, pid, data):
-        self.pid = normalize_id(pid)
-        self.path = data['path']
-        self.hash = data['hash']
-
-    def process(self, path):
-        self.path = path
-        repo_type   = self._sync['type']
-        repo_url    = self._sync['url']
-        repo = sync.auto_repo(repo_type, repo_url, local=path)
-        repo.pull()
-
-        # build
-
-        self.hash = utils.checksum(self.path)
-        assert self.is_valid()
-
-    def is_valid(self):
-        return utils.checksum(self.path) == self.hash
-
-
-
-class PackageList:
-    def __init__(self, filename):
-        self.filename = filename
-        self._reload
-
-    def _reload(self):
-        with open(self. filename) as f:
-            self.db = yaml.load(f)
-
-    def _flush(self):
-        with open(self.filename, 'w') as f:
-            yaml.dump(self.db, f)
-
-    #operator in
-    def __contains__(self, package_id):
-        pid = normalize_id(package_id)
-        return pid in self.db
-
-    # operator[]
-    def __getitem__(self, package_id):
-        pid = normalize_id(package_id)
-        return Package(pid, self.db[pid])
-
-    # operator[] = value
-    @utils.static_typed(PackageList, str, Package)
-    def __setitem__(self, package_id, value):
-        pid = Package.normalize_id(package_id)
-        self.db[pid] = value
-
-    def process(self, package):
-        assert package.pid not in self
-
-        with utils.work_dir(in_cache('installed')):
-            store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, pid))
-            package.process(store_dir)
-
-        self[package.pid] = package
-        self._flush();
-
-
+#--------
 
 class Test(utils.TestCase):
 
     def test_1(self):
-        info(core.jacis_global_dir())
+
+        install('gtest==1.7.0')

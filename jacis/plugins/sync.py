@@ -33,6 +33,8 @@ import os
 import git
 import argparse
 
+from jacis import utils
+
 #-------------------------------------------------------------------------------
 
 class Error(Exception):
@@ -50,9 +52,15 @@ def jacis_plugin(argv):
 
     sync(args.url, args.dir)
 
+def store(info):
+    if info['type'] == 'git':
+        git.Repo.clone_from(info['url'], 'repo')
+    else:
+        raise Exception('not supported:' + info['type'])
+
 
 def sync(url, local_dir):
-    git.Repo.clone_from(url, local_dir)
+    git.Repo.clone_from(info['url'], '')
 
 
 @utils.strong_typed(str, str, str, str)

@@ -29,12 +29,11 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import jacis.utils
-import jacis.core
+import os, uuid, time
 
-from jacis.utils import work_dir
+from jacis import core, utils
 
-log = jacis.core.get_logger(__name__, 100)
+log = core.get_logger(__name__, 100)
 
 #-------------------------------------------------------------------------------
 
@@ -74,28 +73,148 @@ def walk_packages(names, db, upper_scope_variables, reserved_words):
 
 
 class Package:
+
+    def __format_param(self, param):
+        if isinstance(param, list):
+            return [self.__format_param(x) for x in  param]
+        elif isinstance(param, dict):
+            return { k : self.__format_param(v) for k, v in param.items()}
+        elif isinstance(param, str):
+            return param.format(**self._scope)
+        return param
+
     def __init__(self, names, version, db, upper_scope_variables):
         self._name = names
-        self.version = version
+        self._version = version
+        self._pid = '{}=={}'.format('.'.join(names), version)
         self._scope = upper_scope_variables.copy()
+        self._scope['self'] = self
         self._db = db
 
+        # format prams with dictionary recursively
+        self._scope = self.__format_param(self._scope)
 
-class PackageList:
+    @property
+    def version(self):
+        return self._version
+
+    @property
+    def pid(self):
+        return self._pid
+
+
+
+    def __act(self, action, params):
+        params = list(map(lambda x: self._scope.get(x), params))
+        log.debug('executing {}({})'.format(action, params))
+
+        from jacis.plugins import sync
+        actions = {
+            'sync': sync.store
+        }
+
+        func = actions.get(action)
+        if not func:
+            raise Exception('unknown command: {}'.format(action))
+        func(*params)
+
+
+
+
+
+
+    def __execute(self, what):
+        script = self._scope['scripts'][what]
+
+        if isinstance(script, str):
+            script = [script]
+
+        for action_str in script:
+            action = action_str.split(' ')
+            self.__act(action[0], action[1:])
+
+
+    def store(self, path):
+        utils.mktree(path)
+        with utils.work_dir(path):
+            self.__execute('store')
+
+        return dict(name=self.pid, path=path, hash=utils.checksum(path))
+
+
+
+
+
+class RepoPackageList:
     def __init__(self, path):
+        base = 'list.yml'
         self._reserved = set(['packages', 'versions'])
-        with work_dir(path):
-            with open('list.yml') as f:
+        self._fullpath = os.path.join(path, base)
+        with utils.work_dir(path):
+            with open(base) as f:
                 db = yaml.load(f)
                 self._packages = dict(walk_packages([], db, {}, self._reserved))
+
+    def __contains__(self, pid):
+        return pid in self._packages
+
+    def __getitem__(self, pid):
+        return self._packages[pid]
 
     def __str__(self):
         return '\n'.join(self._packages.keys())
 
+class LocalPackageList:
+    def __init__(self, path):
+        self._installed_dir = path
+        self._fullpath = os.path.join(path, 'list.yml')
+        self.reload()
 
-class TestPackage(jacis.utils.TestCase):
+    def __file_modtime(self):
+        return time.ctime(os.path.getmtime(self._fullpath))
+
+    def __file_modified(self):
+        self._db_time < self.__file_modtime()
+
+
+    def reload(self):
+        with open(self._fullpath) as f:
+            db = yaml.load(f)
+            self._db = db if db else {}
+            self._db_time = self.__file_modtime()
+
+    def dump(self):
+        with open(self._fullpath, 'w') as f:
+            yaml.dump(self._db, f)
+        self._db_time = self.__file_modtime()
+
+    def __contains__(self, pid):
+        return pid in self._db
+
+    def __getitem__(self, pid):
+        return self._db[pid]
+
+    def __str__(self):
+        return '\n'.join(self._db.keys())
+
+    def install(self, package):
+        log.debug('installing package: ' + package.pid)
+        with utils.work_dir(self._installed_dir):
+            # store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, package.pid))
+            store_dir = package.pid
+            info = package.store(store_dir)
+            log.debug('package {} stored in {}, result = {}'.format(package.pid, store_dir, info))
+
+            self._db[package.pid] = info
+            self.dump();
+
+
+
+
+
+class TestPackage(utils.TestCase):
 
     def test_1(self):
-        plist = PackageList('d:\\src\\repos\\package_info\\')
+        plist = RepoPackageList('d:\\src\\repos\\package_info\\')
         print(plist)
 
