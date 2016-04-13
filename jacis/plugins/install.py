@@ -29,15 +29,21 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import os, uuid
+import os, uuid, argparse
 
 import jacis
 from jacis import core, utils, packages
+
+log = core.get_logger(__name__, 100)
 
 #-------------------------------------------------------------------------------
 
 
 class Error(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+class Stop(Exception):
     def __init__(self, *args):
         super().__init__(*args)
 
@@ -57,14 +63,12 @@ def jacis_plugin(argv):
         global log
         log = core.get_logger(__name__, args.verbose)
 
-
         log.debug("Hi I'm: {} {}".format(__name__, argv))
         log.debug("Parsed args: {}".format(args))
 
-        request = Package(args, package, args.version)
-        install(request)
+        install(args.package)
 
-    except NothingToDo as e:
+    except Stop as e:
         log.warning(e)
     except Error as e:
         log.error(e)
@@ -97,7 +101,7 @@ def install(package_id):
 
     installed = packages.LocalPackageList(in_cache('installed'))
     if package_id in installed:
-        raise Stop('already installed')
+        raise Stop('{} already installed'.format(package_id))
 
     available = packages.RepoPackageList(in_cache('repo'))
     if package_id not in available:
@@ -114,4 +118,4 @@ class Test(utils.TestCase):
 
     def test_1(self):
 
-        install('gtest==1.7.0')
+        jacis_plugin(['gtest==1.7.0', '-v'])

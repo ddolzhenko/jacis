@@ -185,7 +185,7 @@ class LocalPackageList:
 
     def dump(self):
         with open(self._fullpath, 'w') as f:
-            yaml.dump(self._db, f)
+            yaml.dump(self._db, f, indent=4)
         self._db_time = self.__file_modtime()
 
     def __contains__(self, pid):
