@@ -29,37 +29,42 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
+import os
+import yaml
+
 from jacis import utils, core
+
+log = core.get_logger(__name__)
 
 #-------------------------------------------------------------------------------
 
 class Error(Exception):
     pass
 
-class Stop(Exception):
+class Error(Exception):
     pass
 
 #-------------------------------------------------------------------------------
 
 def __init_general(path, structure, forced=False, quiet=False):
     if forced and os.path.exists(path):
-        log.debug('removing: ' + root)
-        utils.rmdir(root)
+        log.debug('removing: ' + path)
+        utils.rmdir(path)
 
-    if os.path.exists(root):
+    if os.path.exists(path):
         if quiet:
             return
         else:
-            raise Stop('{} already exists'.format(path))
+            raise Error('{} already exists'.format(os.path.abspath(path)))
 
-    log.debug('creating structure in '+root)
+    log.debug('creating structure in '+ path)
     os.mkdir(path)
-    with utils.work_dir(path):
-        utils.init_fs_structure(structure)
+    utils.init_fs_structure(path, structure)
 
 
 def init_global(forced=False, quiet=False):
-    log.info('initializing jacis global folder')
+    if not quiet:
+        log.info('initializing jacis global folder')
 
     structure = yaml.load(  '''
         cache:
@@ -69,12 +74,14 @@ def init_global(forced=False, quiet=False):
         config.yml: ""
         ''')
 
-    root = core.jacis_global_dir()
-    __init_general(root, structure, forced, quiet)
+    path = core.jacis_global_dir()
+    __init_general(path, structure, forced, quiet)
 
 
 def init_local(forced=False, quiet=False):
-    log.info('initializing jacis local folder')
+    if not quiet:
+        log.info('initializing jacis local folder')
+
     structure = yaml.load(  '''
         cache:
             available: {}
@@ -83,8 +90,8 @@ def init_local(forced=False, quiet=False):
         config.yml: ""
         ''')
 
-    root = core.jacis_dir()
-    __init_general(root, structure, forced, quiet)
+    path = core.jacis_dir()
+    __init_general(path, structure, forced, quiet)
 
 
 
