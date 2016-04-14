@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Initializes jacis folders
+"""syncing tools
 """
 
 #-------------------------------------------------------------------------------
@@ -30,9 +30,11 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import yaml
+import git
 
-from jacis import utils, core, sync, config
+from jacis import core, utils
+
+#-------------------------------------------------------------------------------
 
 log = core.get_logger(__name__)
 
@@ -41,72 +43,20 @@ log = core.get_logger(__name__)
 class Error(Exception):
     pass
 
-class Error(Exception):
-    pass
-
 #-------------------------------------------------------------------------------
 
-def __init_general(path, structure, forced=False, quiet=False):
-    if forced and os.path.exists(path):
-        log.debug('removing: ' + path)
-        utils.rmdir(path)
 
-    if os.path.exists(path):
-        if quiet:
-            return
-        else:
-            raise Error('{} already exists'.format(os.path.abspath(path)))
-
-    log.debug('creating structure in '+ path)
-    os.mkdir(path)
-    utils.init_fs_structure(path, structure)
+def git_clone(url, path):
+    git.Repo.clone_from(url, path)
 
 
-def init_global(forced=False, quiet=False):
-    if not quiet:
-        log.info('initializing jacis global folder')
-
-    structure = yaml.load(  '''
-        cache:
-            available: {}
-            installed:
-                list.yml: ""
-        config.yml: ""
-        ''')
-
-    path = core.jacis_global_dir()
-    __init_general(path, structure, forced, quiet)
-
-    with utils.work_dir(path):
-        url = config.package_repo_url
-        path = 'cache/available'
-        log.info('cloning: {} to {}'.format(url, os.path.abspath(path)))
-        sync.git_clone(url, path)
+def store(info):
+    if info['type'] == 'git':
+        git.Repo.clone_from(info['url'], 'repo')
+    else:
+        raise Exception('not supported:' + info['type'])
 
 
-
-def init_local(forced=False, quiet=False):
-    if not quiet:
-        log.info('initializing jacis local folder')
-
-    structure = yaml.load(  '''
-        cache:
-            available: {}
-            installed:
-                list.yml: ""
-        config.yml: ""
-        ''')
-
-    path = core.jacis_dir()
-    __init_general(path, structure, forced, quiet)
-
-
-
-
-
-
-
-
-
-
+def sync(url, local_dir):
+    git.Repo.clone_from(info['url'], '')
 
