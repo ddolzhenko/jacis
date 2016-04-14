@@ -30,9 +30,8 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import jacis
-from jacis import utils
-from jacis.plugins import sync
+
+from jacis import utils, sync
 
 #-------------------------------------------------------------------------------
 
@@ -56,7 +55,7 @@ class BaseTestCase(utils.TestCase):
         for url, data in self.repos.items():
             with self.subTest(url=url):
                 repo = data["name"]
-                sync.sync(url, repo)
+                sync.git_clone(url, repo)
                 self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
                 with utils.work_dir(repo):
                     self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))

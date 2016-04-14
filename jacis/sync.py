@@ -59,9 +59,9 @@ def git_clone(url, path, tag=None):
 
 
 def svn_clone(url, path, tag=None):
-    r = svn.remote.RemoteClient(url)
     if tag:
-        path = urljoin(path, tag)
+        url = urljoin(path, 'tags', tag)
+    r = svn.remote.RemoteClient(url)
     r.checkout(path)
 
 

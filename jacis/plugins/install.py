@@ -50,7 +50,7 @@ class Stop(Exception):
 def jacis_plugin(argv):
     try:
         parser = argparse.ArgumentParser(prog='install')
-        parser.add_argument("package", help="package name to install (eg: boost==1.5)")
+        parser.add_argument("package", help="package name to install (eg: boost==1.5.0)")
         parser.add_argument('-v', '--verbose',
             action='count', default=0, help='verbose level')
         parser.add_argument('-f', '--forced',
