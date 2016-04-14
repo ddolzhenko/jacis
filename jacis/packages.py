@@ -31,7 +31,7 @@ __email__  = "d.dolzhenko@gmail.com"
 
 import os, uuid, time
 
-from jacis import core, utils
+from jacis import core, utils, sync
 
 log = core.get_logger(__name__)
 
@@ -73,7 +73,6 @@ def walk_packages(names, db, upper_scope_variables, reserved_words):
 
 
 class Package:
-
     def __format_param(self, param):
         if isinstance(param, list):
             return [self.__format_param(x) for x in  param]
@@ -102,13 +101,10 @@ class Package:
     def pid(self):
         return self._pid
 
-
-
-    def __act(self, action, params):
+    def __act(self, action, params, **kvargs):
         params = list(map(lambda x: self._scope.get(x), params))
         log.debug('executing {}({})'.format(action, params))
 
-        from jacis.plugins import sync
         actions = {
             'sync': sync.store
         }
@@ -116,14 +112,9 @@ class Package:
         func = actions.get(action)
         if not func:
             raise Exception('unknown command: {}'.format(action))
-        func(*params)
+        func(*params, **kvargs)
 
-
-
-
-
-
-    def __execute(self, what):
+    def __execute(self, what, **kvargs):
         script = self._scope['scripts'][what]
 
         if isinstance(script, str):
@@ -131,14 +122,12 @@ class Package:
 
         for action_str in script:
             action = action_str.split(' ')
-            self.__act(action[0], action[1:])
+            self.__act(action[0], action[1:], **kvargs)
 
 
     def store(self, path):
         utils.mktree(path)
-        with utils.work_dir(path):
-            self.__execute('store')
-
+        self.__execute('store', path=path)
         return dict(name=self.pid, path=path, hash=utils.checksum(path))
 
 

@@ -50,13 +50,13 @@ def git_clone(url, path):
     git.Repo.clone_from(url, path)
 
 
-def store(info):
-    if info['type'] == 'git':
-        git.Repo.clone_from(info['url'], 'repo')
+def store(info, **kvargs):
+    path = kvargs['path']
+
+    who = info['type']
+    url = info['url']
+    if who == 'git':
+        git_clone(url, path)
     else:
         raise Exception('not supported:' + info['type'])
-
-
-def sync(url, local_dir):
-    git.Repo.clone_from(info['url'], '')
 
