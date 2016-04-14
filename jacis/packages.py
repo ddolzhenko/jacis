@@ -33,7 +33,7 @@ import os, uuid, time
 
 from jacis import core, utils
 
-log = core.get_logger(__name__, 100)
+log = core.get_logger(__name__)
 
 #-------------------------------------------------------------------------------
 
@@ -197,16 +197,32 @@ class LocalPackageList:
     def __str__(self):
         return '\n'.join(self._db.keys())
 
+    def __store_dir(self, pid):
+        # store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, package.pid))
+        return pid
+
     def install(self, package):
-        log.debug('installing package: ' + package.pid)
+        log.info('installing package: {} ...'.format(package.pid))
         with utils.work_dir(self._installed_dir):
-            # store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, package.pid))
-            store_dir = package.pid
+            store_dir = self.__store_dir(package.pid)
             info = package.store(store_dir)
             log.debug('package {} stored in {}, result = {}'.format(package.pid, store_dir, info))
 
             self._db[package.pid] = info
             self.dump();
+        log.info('done.')
+
+
+    def remove(self, pid):
+        log.info('installing package: {} ...'.format(pid))
+        with utils.work_dir(self._installed_dir):
+            store_dir = self.__store_dir(pid)
+            log.debug('removing from list')
+            del self._db[pid]
+            self.dump();
+            log.debug('removing dir: {}'.format(os.path.abspath(store_dir)))
+            utils.rmdir(store_dir)
+        log.info('done.')
 
 
 

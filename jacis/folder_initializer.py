@@ -80,8 +80,9 @@ def init_global(forced=False, quiet=False):
     with utils.work_dir(path):
         url = config.package_repo_url
         path = 'cache/available'
-        log.info('cloning: {} to {}'.format(url, os.path.abspath(path)))
-        sync.git_clone(url, path)
+        if not os.path.exists(path+'/.git'):
+            log.info('cloning: {} to {}'.format(url, os.path.abspath(path)))
+            sync.git_clone(url, path)
 
 
 
