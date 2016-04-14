@@ -59,7 +59,11 @@ def jacis_plugin(argv):
 
         core.set_log_verbosity(args.verbose)
 
-        install(args.package, forced=args.forced)
+        #hack list
+        if args.package=='list':
+            list_them()
+        else:
+            install(args.package, forced=args.forced)
 
     except Stop as e:
         log.warning(e)
@@ -95,6 +99,23 @@ def install(package_id, forced=False):
         raise Error('unknown package: "{}"'.format(package_id))
 
     installed.install(available[package_id])
+
+
+def list_them():
+
+    folder_initializer.init_global(quiet=True)
+
+    installed = packages.LocalPackageList(in_cache('installed'))
+    available = packages.RepoPackageList(in_cache('available'))
+    log.info('installed:')
+    for x in installed.names():
+        log.info('    ' + x)
+
+    log.info('----------------------------------------------------')
+    log.info('available:')
+    for x in available.names():
+        log.info('    ' + x)
+    log.info('----------------------------------------------------')
 
 
 #-------------------------------------------------------------------------------

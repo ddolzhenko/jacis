@@ -156,6 +156,9 @@ class RepoPackageList:
     def __str__(self):
         return '\n'.join(self._packages.keys())
 
+    def names(self):
+        yield from self._packages.keys()
+
 class LocalPackageList:
     def __init__(self, path):
         self._installed_dir = path
@@ -192,6 +195,9 @@ class LocalPackageList:
     def __store_dir(self, pid):
         # store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, package.pid))
         return pid
+
+    def names(self):
+        yield from self._db.keys()
 
     def install(self, package):
         log.info('installing package: {} ...'.format(package.pid))
