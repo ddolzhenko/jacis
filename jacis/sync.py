@@ -31,6 +31,7 @@ __email__  = "d.dolzhenko@gmail.com"
 
 import os
 import git
+import svn.remote
 
 from jacis import core, utils
 
@@ -50,6 +51,11 @@ def git_clone(url, path):
     git.Repo.clone_from(url, path)
 
 
+def svn_clone(url, path):
+    r = svn.remote.RemoteClient(url)
+    r.checkout(path)
+
+
 def store(info, **kvargs):
     path = kvargs['path']
 
@@ -58,6 +64,8 @@ def store(info, **kvargs):
 
     if who == 'git':
         git_clone(url, path)
+    elif who == 'svn':
+        svn_clone(url, path)
     else:
         raise Exception('not supported: ' + who)
 

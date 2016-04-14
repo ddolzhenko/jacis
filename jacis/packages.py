@@ -98,6 +98,10 @@ class Package:
         return self._version
 
     @property
+    def version_underscored(self):
+        return self.version.replace('.', '_')
+
+    @property
     def pid(self):
         return self._pid
 
