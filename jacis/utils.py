@@ -104,6 +104,38 @@ def im_on_windows():
 
 #-------------------------------------------------------------------------------
 # folders
+
+def init_fs_structure(path, structure):
+    '''Creates folder structure in path according dict from parameters
+    example:
+    istream = open('filename.txt')
+    structure = {
+        folder_l0_1: {                   #this is a folder because dict inside
+            folder_l1_1 : {},            #this is a empty folder inside upper folder
+            file_l1_1.txt: 'Hello world!',   #this is file with contents 'Hello world'
+            file_l1_2.ext: istream             #this will create a file with contents from file stream
+        },
+        file_l0_1: some text inside # file on top
+    }
+
+    init_fs_structure(structure)
+    '''
+    assert isinstance(structure, dict)
+    with work_dir(path):
+        for name, data in structure.items():
+            assert data is not None
+            elif isinstance(data, dict):  # create a folder
+                os.mkdir(name)
+                init_fs_structure(name, data)
+            elif isinstance(data, str): # just a file
+                with open(name) as f:
+                    f.write(data)
+            else:                       # everything else threated as stream
+                with open(name) as f:
+                    f.write(data.read())
+
+
+
 def home_dir():
     if im_on_windows():
         return os.environ['USERPROFILE']
