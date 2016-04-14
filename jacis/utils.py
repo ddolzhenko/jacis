@@ -124,14 +124,14 @@ def init_fs_structure(path, structure):
     with work_dir(path):
         for name, data in structure.items():
             assert data is not None
-            elif isinstance(data, dict):  # create a folder
+            if isinstance(data, dict):  # create a folder
                 os.mkdir(name)
                 init_fs_structure(name, data)
             elif isinstance(data, str): # just a file
-                with open(name) as f:
+                with open(name, 'w') as f:
                     f.write(data)
             else:                       # everything else threated as stream
-                with open(name) as f:
+                with open(name, 'w') as f:
                     f.write(data.read())
 
 
