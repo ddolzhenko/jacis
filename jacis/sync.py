@@ -32,6 +32,7 @@ __email__  = "d.dolzhenko@gmail.com"
 import os
 import git
 import svn.remote
+from urllib.parse import urljoin
 
 from jacis import core, utils
 
@@ -47,12 +48,20 @@ class Error(Exception):
 #-------------------------------------------------------------------------------
 
 
-def git_clone(url, path):
-    git.Repo.clone_from(url, path)
+def git_clone(url, path, tag=None):
+    log.debug('git clone {} {}'.format(url, path))
+    repo = git.Repo.clone_from(url, path)
+    if tag:
+        tag_path = 'tags/{}'.format(tag)
+        log.debug('git checkout: '+tag_path)
+        res = repo.git.checkout(tag_path)
+        print(res)
 
 
-def svn_clone(url, path):
+def svn_clone(url, path, tag=None):
     r = svn.remote.RemoteClient(url)
+    if tag:
+        path = urljoin(path, tag)
     r.checkout(path)
 
 
@@ -61,11 +70,12 @@ def store(info, **kvargs):
 
     who = info['type']
     url = info['url']
+    tag = info['tag']
 
     if who == 'git':
-        git_clone(url, path)
+        git_clone(url, path, tag)
     elif who == 'svn':
-        svn_clone(url, path)
+        svn_clone(url, path, tag)
     else:
         raise Exception('not supported: ' + who)
 
