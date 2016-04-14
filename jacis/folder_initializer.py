@@ -41,9 +41,6 @@ log = core.get_logger(__name__)
 class Error(Exception):
     pass
 
-class Error(Exception):
-    pass
-
 #-------------------------------------------------------------------------------
 
 def __init_general(path, structure, forced=False, quiet=False):

@@ -30,6 +30,7 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 from jacis import utils
-__all__ = utils.get_module_names(__file__)
+__all__ = utils.get_public_module_names(__file__)
+from jacis.plugins import*
 
 #-------------------------------------------------------------------------------

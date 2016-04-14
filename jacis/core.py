@@ -95,7 +95,6 @@ def jacis_global_dir():
 ###############################################################################
 # plugins and tests
 
-from jacis.plugins import *
 def get_plugins():
     from jacis import plugins
     members = (x for x in inspect.getmembers(plugins))
