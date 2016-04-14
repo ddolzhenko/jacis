@@ -107,7 +107,6 @@ class Package:
 
     def __act(self, action, params, **kvargs):
         params = list(map(lambda x: self._scope.get(x), params))
-        log.debug('executing {}({})'.format(action, params))
 
         actions = {
             'sync': sync.store

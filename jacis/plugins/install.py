@@ -105,4 +105,6 @@ class Test(utils.TestCase):
 
     def test_1(self):
 
+        jacis_plugin(['gtest==1.0.0', '-vvv', '-f'])
         jacis_plugin(['gtest==1.5.0', '-vvv', '-f'])
+        # jacis_plugin(['boost==1.59.0', '-v'])
