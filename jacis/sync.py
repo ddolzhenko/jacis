@@ -55,8 +55,9 @@ def store(info, **kvargs):
 
     who = info['type']
     url = info['url']
+
     if who == 'git':
         git_clone(url, path)
     else:
-        raise Exception('not supported:' + info['type'])
+        raise Exception('not supported: ' + who)
 
