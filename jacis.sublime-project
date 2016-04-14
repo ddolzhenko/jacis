@@ -5,7 +5,7 @@
             "name": "jacis",
             "working_dir": "${project_path}",
             // "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*$",
-            "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*,.*",
+            "file_regex": "File \"([^\"]+)\", line (\\d+)\\s*.*",
             "selector": "source.yaml, source.python, source.json",
 
             "cmd": ["python", "-m", "unittest", "$file"],
@@ -38,7 +38,7 @@
         {
             "name": "root",
             "path": ".",
-            // "folder_exclude_patterns": ["bin"]
+            "folder_exclude_patterns": ["build"]
         }
     ],
 
