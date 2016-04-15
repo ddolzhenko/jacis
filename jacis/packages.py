@@ -181,7 +181,7 @@ class LocalPackageList:
         with open(self._fullpath) as f:
             db = yaml.load(f)
             self._db = db if db else {}
-            self._db_time = self.__file_modtime()
+        self._db_time = self.__file_modtime()
 
     def dump(self):
         with open(self._fullpath, 'w') as f:
