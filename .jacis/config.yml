@@ -1,2 +1,0 @@
-__dict__:
-    user: !!python/object:jacis.config.Config {mail: null, name: null}

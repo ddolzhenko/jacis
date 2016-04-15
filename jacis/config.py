@@ -37,6 +37,11 @@ from jacis import core
 log = core.get_logger(__name__)
 
 #-------------------------------------------------------------------------------
+# global properties
+
+package_repo_url = 'https://github.com/ddolzhenko/package_info.git'
+
+#-------------------------------------------------------------------------------
 
 default_filename = '.jacis/config.yml'
 default_str = '''

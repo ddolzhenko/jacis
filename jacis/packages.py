@@ -31,9 +31,9 @@ __email__  = "d.dolzhenko@gmail.com"
 
 import os, uuid, time
 
-from jacis import core, utils
+from jacis import core, utils, sync
 
-log = core.get_logger(__name__, 100)
+log = core.get_logger(__name__)
 
 #-------------------------------------------------------------------------------
 
@@ -73,7 +73,6 @@ def walk_packages(names, db, upper_scope_variables, reserved_words):
 
 
 class Package:
-
     def __format_param(self, param):
         if isinstance(param, list):
             return [self.__format_param(x) for x in  param]
@@ -99,16 +98,16 @@ class Package:
         return self._version
 
     @property
+    def version_underscored(self):
+        return self.version.replace('.', '_')
+
+    @property
     def pid(self):
         return self._pid
 
-
-
-    def __act(self, action, params):
+    def __act(self, action, params, **kvargs):
         params = list(map(lambda x: self._scope.get(x), params))
-        log.debug('executing {}({})'.format(action, params))
 
-        from jacis.plugins import sync
         actions = {
             'sync': sync.store
         }
@@ -116,14 +115,9 @@ class Package:
         func = actions.get(action)
         if not func:
             raise Exception('unknown command: {}'.format(action))
-        func(*params)
+        func(*params, **kvargs)
 
-
-
-
-
-
-    def __execute(self, what):
+    def __execute(self, what, **kvargs):
         script = self._scope['scripts'][what]
 
         if isinstance(script, str):
@@ -131,14 +125,12 @@ class Package:
 
         for action_str in script:
             action = action_str.split(' ')
-            self.__act(action[0], action[1:])
+            self.__act(action[0], action[1:], **kvargs)
 
 
     def store(self, path):
         utils.mktree(path)
-        with utils.work_dir(path):
-            self.__execute('store')
-
+        self.__execute('store', path=path)
         return dict(name=self.pid, path=path, hash=utils.checksum(path))
 
 
@@ -163,6 +155,9 @@ class RepoPackageList:
 
     def __str__(self):
         return '\n'.join(self._packages.keys())
+
+    def names(self):
+        yield from self._packages.keys()
 
 class LocalPackageList:
     def __init__(self, path):
@@ -197,16 +192,35 @@ class LocalPackageList:
     def __str__(self):
         return '\n'.join(self._db.keys())
 
+    def __store_dir(self, pid):
+        # store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, package.pid))
+        return pid
+
+    def names(self):
+        yield from self._db.keys()
+
     def install(self, package):
-        log.debug('installing package: ' + package.pid)
+        log.info('installing package: {} ...'.format(package.pid))
         with utils.work_dir(self._installed_dir):
-            # store_dir = str(uuid.uuid5(uuid.NAMESPACE_DNS, package.pid))
-            store_dir = package.pid
+            store_dir = self.__store_dir(package.pid)
             info = package.store(store_dir)
             log.debug('package {} stored in {}, result = {}'.format(package.pid, store_dir, info))
 
             self._db[package.pid] = info
             self.dump();
+        log.info('done.')
+
+
+    def remove(self, pid):
+        log.info('installing package: {} ...'.format(pid))
+        with utils.work_dir(self._installed_dir):
+            store_dir = self.__store_dir(pid)
+            log.debug('removing from list')
+            del self._db[pid]
+            self.dump();
+            log.debug('removing dir: {}'.format(os.path.abspath(store_dir)))
+            utils.rmdir(store_dir)
+        log.info('done.')
 
 
 

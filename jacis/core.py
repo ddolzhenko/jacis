@@ -50,7 +50,8 @@ def __setup_root_logger(name):
     # ch.setLevel(logging.WARNING)
 
     # create formatter
-    formatter = logging.Formatter('%(name)s>>%(levelname)8s: %(message)s')
+    # formatter = logging.Formatter('%(name)s>>%(levelname)1s: %(message)s')
+    formatter = logging.Formatter('%(message)s')
     ch.setFormatter(formatter)
 
     # add ch to logger
@@ -60,21 +61,25 @@ def __setup_root_logger(name):
 
 __root_logger = __setup_root_logger('jacis')
 
-def get_logger(name, verbosity=0):
-    logger = logging.getLogger(name)
+def verbosity_to_level(verbosity):
     if verbosity>= 2:
-        logger.setLevel(logging.DEBUG)
+        return logging.DEBUG
     elif verbosity== 1:
-        logger.setLevel(logging.INFO)
+        return logging.INFO
     elif verbosity== 0:
-        logger.setLevel(logging.WARNING)
-    else:
-        assert verbosity>= 0, 'invalid logger verbosity'
-    return logger
+        return logging.WARNING
 
-__self_path = os.path.dirname(__file__)
+    assert verbosity>= 0, 'invalid logger verbosity'
+
+def get_logger(name):
+    return logging.getLogger(name)
+
+def set_log_verbosity(verbosity):
+    # print('level: ', verbosity_to_level(verbosity))
+    logging.getLogger().setLevel(verbosity_to_level(verbosity))
+
 def get_self_path():
-    return __self_path
+    return os.path.dirname(__file__)
 
 ###############################################################################
 # dir
@@ -90,7 +95,6 @@ def jacis_global_dir():
 ###############################################################################
 # plugins and tests
 
-from jacis.plugins import *
 def get_plugins():
     from jacis import plugins
     members = (x for x in inspect.getmembers(plugins))

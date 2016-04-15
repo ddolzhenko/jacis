@@ -39,8 +39,8 @@ from jacis import version
 
 def main():
     commands = core.get_plugins()
-    parser = argparse.ArgumentParser(description=version.program_full_name)
-    valid = 'valid commands: {}'.format(','.join(commands.keys()))
+    parser = argparse.ArgumentParser(prog='jacis', description=version.program_full_name)
+    valid = 'valid commands: {}'.format(', '.join(commands.keys()))
     parser.add_argument('command', help=valid)
 
     args = parser.parse_args(sys.argv[1:2])
@@ -49,4 +49,4 @@ def main():
         print(valid)
     else:
         commands[args.command].jacis_plugin(sys.argv[2:])
-              
+

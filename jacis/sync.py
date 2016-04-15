@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Plugins auto import
+"""syncing tools
 """
 
 #-------------------------------------------------------------------------------
@@ -29,8 +29,53 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-from jacis import utils
-__all__ = utils.get_public_module_names(__file__)
-from jacis.plugins import*
+import os
+import git
+import svn.remote
+from urllib.parse import urljoin
+
+from jacis import core, utils
 
 #-------------------------------------------------------------------------------
+
+log = core.get_logger(__name__)
+
+#-------------------------------------------------------------------------------
+
+class Error(Exception):
+    pass
+
+#-------------------------------------------------------------------------------
+
+
+def git_clone(url, path, tag=None):
+    log.debug('git clone {} {}'.format(url, path))
+    repo = git.Repo.clone_from(url, path)
+    if tag:
+        tag_path = 'tags/{}'.format(tag)
+        log.debug('git checkout: '+tag_path)
+        res = repo.git.checkout(tag_path)
+        print(res)
+
+
+def svn_clone(url, path, tag=None):
+    if tag:
+        url = urljoin(path, 'tags', tag)
+    r = svn.remote.RemoteClient(url)
+    r.checkout(path)
+
+
+def store(info, **kvargs):
+    path = kvargs['path']
+
+    who = info['type']
+    url = info['url']
+    tag = info['tag']
+
+    if who == 'git':
+        git_clone(url, path, tag)
+    elif who == 'svn':
+        svn_clone(url, path, tag)
+    else:
+        raise Exception('not supported: ' + who)
+
