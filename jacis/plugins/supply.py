@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Install package
+"""Supply  package s index
 """
 
 #-------------------------------------------------------------------------------
@@ -49,21 +49,42 @@ class Stop(Exception):
 
 def jacis_plugin(argv):
     try:
-        parser = argparse.ArgumentParser(prog='install')
-        parser.add_argument("package", help="package name to install (eg: boost==1.5.0)")
+        parser = argparse.ArgumentParser(prog='supply')
+        parser.add_argument("package", default="", help="package name to install (eg: boost==1.5.0)")
+
+        parser.add_argument('--remove',
+            action='store_true', default=False, help='just remove package')
+
+        parser.add_argument('--available',
+            action='store_true', default=False, help='show available packages similarly named')
+        parser.add_argument('--installed',
+            action='store_true', default=False, help='show installed packages similarly named')
+
+        parser.add_argument('-f', '--forced',
+            action='store_true', default=False, help='remove previous one and all previous package data')
+
         parser.add_argument('-v', '--verbose',
             action='count', default=0, help='verbose level')
-        parser.add_argument('-f', '--forced',
-            action='store_true', default=False, help='clean previous one. Kills all previous data')
         args = parser.parse_args(argv)
 
         core.set_log_verbosity(args.verbose)
 
-        #hack list
-        if args.package=='list':
-            list_them()
+        folder_initializer.init_global(quiet=True)
+
+
+        if args.available or args.installed:
+            if args.available:
+                core.set_log_verbosity(max(args.verbose, 1))
+                list_available_packages(args.package)
+            if args.installed:
+                core.set_log_verbosity(max(args.verbose, 1))
+                list_installed_packages(args.package)
         else:
-            install(args.package, forced=args.forced)
+            if args.remove:
+                remove_package(args.package, args.forced)
+            else:
+                install_package(args.package, forced=args.forced)
+
 
     except Stop as e:
         log.warning(e)
@@ -83,9 +104,7 @@ def in_cache(*relative):
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 
-def install(package_id, forced=False):
-
-    folder_initializer.init_global(quiet=True)
+def install_package(package_id, forced=False):
 
     installed = packages.LocalPackageList(in_cache('installed'))
     if package_id in installed:
@@ -101,22 +120,35 @@ def install(package_id, forced=False):
     installed.install(available[package_id])
 
 
-def list_them():
+br = lambda: log.info('----------------------------------------------------')
+tab = lambda x: '    ' + x
 
-    folder_initializer.init_global(quiet=True)
-
-    installed = packages.LocalPackageList(in_cache('installed'))
+def list_available_packages(package_id):
+    like = lambda pid: package_id in pid
     available = packages.RepoPackageList(in_cache('available'))
-    log.info('installed:')
-    for x in installed.names():
-        log.info('    ' + x)
-
-    log.info('----------------------------------------------------')
+    br()
     log.info('available:')
     for x in available.names():
-        log.info('    ' + x)
-    log.info('----------------------------------------------------')
+        if like(x):
+            log.info(tab(x))
+    br()
 
+def list_installed_packages(package_id):
+    like = lambda pid: package_id in pid
+    installed = packages.LocalPackageList(in_cache('installed'))
+    br()
+    log.info('installed:')
+    for x in installed.names():
+        if like(x):
+            log.info(tab(x))
+    br()
+
+def remove_package(package_id, forced=False):
+    installed = packages.LocalPackageList(in_cache('installed'))
+    if package_id not in installed:
+        raise Error('{} package not installed'.format(package_id))
+
+    installed.remove(package_id)
 
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
@@ -125,7 +157,20 @@ def list_them():
 class Test(utils.TestCase):
 
     def test_1(self):
+        log.warning('\n>>>>> list available <<<<<<<:')
+        jacis_plugin(['gtest==1', '--available', '-vvv'])
 
+        log.warning('\n>>>>> installing <<<<<<<:')
         jacis_plugin(['gtest==1.0.0', '-vvv', '-f'])
-        jacis_plugin(['gtest==1.5.0', '-vvv', '-f'])
-        # jacis_plugin(['boost==1.59.0', '-v'])
+
+        log.warning('\n>>>>> list installed <<<<<<<:')
+        jacis_plugin(['gtest', '--installed', '-vvv'])
+
+        log.warning('\n>>>>> remove installed <<<<<<<:')
+        jacis_plugin(['gtest==1.0.0', '--remove', '-vvv'])
+
+        log.warning('\n>>>>> remove not installed <<<<<<<:')
+        jacis_plugin(['gtest==1.0.0', '--remove', '-vvv'])
+
+        log.warning('\n>>>>> list installed <<<<<<<:')
+        jacis_plugin(['gtest', '--installed', '-vvv'])
