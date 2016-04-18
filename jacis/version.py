@@ -19,62 +19,21 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Command line interface tests
+"""Version tools
 """
 
 #-------------------------------------------------------------------------------
 
 __author__ = "Dmitry Dolzhenko"
 __email__  = "d.dolzhenko@gmail.com"
-
+__version__ = 0.1
 #-------------------------------------------------------------------------------
 
 import os
-import unittest
-import tempfile
-from jacis import utils
 
 #-------------------------------------------------------------------------------
 
-class InternalCommands(unittest.TestCase):
-    
-    def setUp(self):
-        pass
-        # utils.work_dir()
-        # self.prev_work_dir = os.getcwd()
-        # self.work_dir = tempfile.mkdtemp()
-        # os.chdir(self.work_dir)
-
-    def tearDown(self):
-        pass
-        # os.chdir(self.prev_work_dir)
-        # utils.rmdir(self.work_dir)
-
-    def cute(self, msg):
-        return "{}. CWD: '{}'".format(msg, self.work_dir)
-
-    def assertPredicate(self, p, x, msg=""):
-        if not p(x):
-            raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
-    
-    def test_full_repo(self):
-        
-        def prefixed(pref):
-            def decorate(f):
-                def decorator(*args, **kvargs):
-                    print(pref)
-                    r = f(*args, **kvargs)
-                    print(pref)
-                return decorator
-            return decorate
-
-
-        @prefixed("---")
-        def foo(a, b):
-            print (a)
-            print (b)
-
-        a = 2
-        b = 3
-
-        foo(a, b)
+version         = __version__
+version_name    = str(version)
+program_name    = "Jacis"
+program_full_name = "{} version {}".format(program_name, version_name)

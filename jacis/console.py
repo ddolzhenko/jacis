@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""syncing tools
+"""Main entry point to jacis command line
 """
 
 #-------------------------------------------------------------------------------
@@ -29,53 +29,24 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import os
-import git
-import svn.remote
-from urllib.parse import urljoin
+import argparse
+import sys
 
-from jacis import core, utils
-
-#-------------------------------------------------------------------------------
-
-log = core.get_logger(__name__)
+from jacis import core
+from jacis import version
 
 #-------------------------------------------------------------------------------
 
-class Error(Exception):
-    pass
+def main():
+    commands = core.get_plugins()
+    parser = argparse.ArgumentParser(prog='jacis', description=version.program_full_name)
+    valid = 'valid commands: {}'.format(', '.join(commands.keys()))
+    parser.add_argument('command', help=valid)
 
-#-------------------------------------------------------------------------------
-
-
-def git_clone(url, path, tag=None):
-    log.debug('git clone {} {}'.format(url, path))
-    repo = git.Repo.clone_from(url, path)
-    if tag:
-        tag_path = 'tags/{}'.format(tag)
-        log.debug('git checkout: '+tag_path)
-        res = repo.git.checkout(tag_path)
-        print(res)
-
-
-def svn_clone(url, path, tag=None):
-    if tag:
-        url = urljoin(path, 'tags', tag)
-    r = svn.remote.RemoteClient(url)
-    r.checkout(path)
-
-
-def store(info, **kvargs):
-    path = kvargs['path']
-
-    who = info['type']
-    url = info['url']
-    tag = info['tag']
-
-    if who == 'git':
-        git_clone(url, path, tag)
-    elif who == 'svn':
-        svn_clone(url, path, tag)
+    args = parser.parse_args(sys.argv[1:2])
+    if args.command not in commands:
+        print("unknown command: " + args.command)
+        print(valid)
     else:
-        raise Exception('not supported: ' + who)
+        commands[args.command].jacis_plugin(sys.argv[2:])
 

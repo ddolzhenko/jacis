@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""syncing tools
+"""Init subcommand
 """
 
 #-------------------------------------------------------------------------------
@@ -29,53 +29,48 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import os
-import git
-import svn.remote
-from urllib.parse import urljoin
-
-from jacis import core, utils
-
-#-------------------------------------------------------------------------------
+import os, sys
+import argparse
+import jacis
+from jacis import core, utils, folder_initializer
 
 log = core.get_logger(__name__)
 
 #-------------------------------------------------------------------------------
 
-class Error(Exception):
-    pass
+def jacis_plugin(argv):
+    try:
+        parser = argparse.ArgumentParser(prog='init')
+        parser.add_argument('-v', '--verbose',
+            action='count', default=0, help='verbose level')
+        parser.add_argument('-f', '--forced',
+            action='store_true', default=False, help='clean previous one. Kills all previous data')
+        parser.add_argument('-g', '--global',
+            action='store_true', default=False, help='affects global folder only')
+        args = parser.parse_args(argv)
+
+        core.set_log_verbosity(args.verbose)
+
+        log.debug("Hi I'm: {} {}".format(__name__, argv))
+        log.debug("Parsed args: {}".format(args))
+
+        init(glob=vars(args)['global'], forced=args.forced)
+    except folder_initializer.Error as e:
+        log.error(e)
+
 
 #-------------------------------------------------------------------------------
 
-
-def git_clone(url, path, tag=None):
-    log.debug('git clone {} {}'.format(url, path))
-    repo = git.Repo.clone_from(url, path)
-    if tag:
-        tag_path = 'tags/{}'.format(tag)
-        log.debug('git checkout: '+tag_path)
-        res = repo.git.checkout(tag_path)
-        print(res)
-
-
-def svn_clone(url, path, tag=None):
-    if tag:
-        url = urljoin(path, 'tags', tag)
-    r = svn.remote.RemoteClient(url)
-    r.checkout(path)
-
-
-def store(info, **kvargs):
-    path = kvargs['path']
-
-    who = info['type']
-    url = info['url']
-    tag = info['tag']
-
-    if who == 'git':
-        git_clone(url, path, tag)
-    elif who == 'svn':
-        svn_clone(url, path, tag)
+def init(glob, forced):
+    if glob:
+        folder_initializer.init_global(forced=forced)
     else:
-        raise Exception('not supported: ' + who)
+        folder_initializer.init_global(forced=forced, quiet=True)
+        folder_initializer.init_local(forced=forced)
 
+
+class Test(utils.TestCase):
+    def test_1(self):
+        with utils.work_dir('d:\\src\\repos\jacis\\.temp'):
+            # jacis_plugin(['-vvv', '-f'])
+            jacis_plugin(['-vv', '-f'])

@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""syncing tools
+"""Initializes jacis folders
 """
 
 #-------------------------------------------------------------------------------
@@ -30,13 +30,9 @@ __email__  = "d.dolzhenko@gmail.com"
 #-------------------------------------------------------------------------------
 
 import os
-import git
-import svn.remote
-from urllib.parse import urljoin
+import yaml
 
-from jacis import core, utils
-
-#-------------------------------------------------------------------------------
+from jacis import utils, core, sync, config
 
 log = core.get_logger(__name__)
 
@@ -47,35 +43,68 @@ class Error(Exception):
 
 #-------------------------------------------------------------------------------
 
+def __init_general(path, structure, forced=False, quiet=False):
+    if forced and os.path.exists(path):
+        log.debug('removing: ' + path)
+        utils.rmdir(path)
 
-def git_clone(url, path, tag=None):
-    log.debug('git clone {} {}'.format(url, path))
-    repo = git.Repo.clone_from(url, path)
-    if tag:
-        tag_path = 'tags/{}'.format(tag)
-        log.debug('git checkout: '+tag_path)
-        res = repo.git.checkout(tag_path)
-        print(res)
+    if os.path.exists(path):
+        if quiet:
+            return
+        else:
+            raise Error('{} already exists'.format(os.path.abspath(path)))
 
-
-def svn_clone(url, path, tag=None):
-    if tag:
-        url = urljoin(path, 'tags', tag)
-    r = svn.remote.RemoteClient(url)
-    r.checkout(path)
+    log.debug('creating structure in '+ path)
+    os.mkdir(path)
+    utils.init_fs_structure(path, structure)
 
 
-def store(info, **kvargs):
-    path = kvargs['path']
+def init_global(forced=False, quiet=False):
+    if not quiet:
+        log.info('initializing jacis global folder')
 
-    who = info['type']
-    url = info['url']
-    tag = info['tag']
+    structure = yaml.load(  '''
+        cache:
+            available: {}
+            installed:
+                list.yml: ""
+        config.yml: ""
+        ''')
 
-    if who == 'git':
-        git_clone(url, path, tag)
-    elif who == 'svn':
-        svn_clone(url, path, tag)
-    else:
-        raise Exception('not supported: ' + who)
+    path = core.jacis_global_dir()
+    __init_general(path, structure, forced, quiet)
+
+    with utils.work_dir(path):
+        url = config.package_repo_url
+        path = 'cache/available'
+        if not os.path.exists(path+'/.git'):
+            log.info('cloning: {} to {}'.format(url, os.path.abspath(path)))
+            sync.git_clone(url, path)
+
+
+
+def init_local(forced=False, quiet=False):
+    if not quiet:
+        log.info('initializing jacis local folder')
+
+    structure = yaml.load(  '''
+        cache:
+            available: {}
+            installed:
+                list.yml: ""
+        config.yml: ""
+        ''')
+
+    path = core.jacis_dir()
+    __init_general(path, structure, forced, quiet)
+
+
+
+
+
+
+
+
+
+
 

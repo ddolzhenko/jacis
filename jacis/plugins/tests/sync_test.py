@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""sync module test
 """
 
 #-------------------------------------------------------------------------------
@@ -29,23 +29,33 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import argparse
+import os
+
+from jacis import utils, sync
 
 #-------------------------------------------------------------------------------
 
-def main():
-    parser = argparse.ArgumentParser()
-   
-    parser.add_argument("update", help="Copies or updates folder from external source")
-    parser.add_argument("sync", help="Synchronizes external folder with local one")
+class BaseTestCase(utils.TestCase):
 
-    args = parser.parse_args()
+    def setUp(self):
+        self.tmp = utils.temp_work_dir()
+        self.tmp.__enter__()
 
-    print(args.update)
-  
+        self.repos = {
+            "https://github.com/ddolzhenko/TestGit.git" : dict(name="git-http", hash="aaea772d08e46f700797a79615bb566b1254b48b"),
+            }
 
-if __name__ == "__main__":
-    import sys
-    print("call: '{}'".format(" ".join(sys.argv)))
-    main()
-    print("\n>end<\n")
+    def tearDown(self):
+        self.tmp.__exit__()
+
+    def cute(self, msg):
+        return "{}. CWD: '{}'".format(msg, self.tmp)
+
+    def test_full_repo(self):
+        for url, data in self.repos.items():
+            with self.subTest(url=url):
+                repo = data["name"]
+                sync.git_clone(url, repo)
+                self.assertPredicate(os.path.isdir, repo, self.cute("not a folder"))
+                with utils.work_dir(repo):
+                    self.assertEqual(utils.checksum('test'), data["hash"], self.cute('folder checksum failed'))

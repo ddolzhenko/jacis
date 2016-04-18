@@ -36,30 +36,40 @@ import shutil
 import stat
 import unittest
 import collections
+import tempfile
 
 #-------------------------------------------------------------------------------
 # tests
 
-
 class TestCase(unittest.TestCase):
-    
+
     def assertPredicate(self, p, x, msg=""):
         if not p(x):
             raise AssertionError("{}({}) is false\n : {}".format(p.__name__, x, msg))
 
-    
-
 
 #-------------------------------------------------------------------------------
+# modules
 
+def get_module_names(init_file):
+    import glob
+    from os.path import dirname, basename, isfile, splitext
+    pys = glob.glob(dirname(init_file) + "/*.py")
+    return [splitext(basename(py))[0] for py in pys if isfile(py)]
+
+def get_public_module_names(init_file):
+    return [x for x in get_module_names(init_file) if not x.startswith('_')]
+
+#-------------------------------------------------------------------------------
 # types:
+
 def _type_call_error(msg, expected, recieved, values):
     j = lambda x: join(x, ', ')
     line = msg+":\n{0}expected: {1}\n{0}recieved: {2}\n{0}values:   {3}".format(' '*4, j(expected), j(recieved), j(values))
     return line
 
 
-def strong_typed(*expected_types, returns=type(None)): 
+def strong_typed(*expected_types, returns=type(None)):
     def decorator(f):
         def check_types(*args, **kvargs):
             if args:
@@ -71,7 +81,7 @@ def strong_typed(*expected_types, returns=type(None)):
 
             result = f(*args, **kvargs)
             assert type(result) == returns, 'wrong result type, expected: {}, recieved: {}'.format(returns, type(result))
-            
+
             return result
 
         return check_types
@@ -87,10 +97,71 @@ def join(what, delimiter=" "):
     return str(what)
 
 #-------------------------------------------------------------------------------
+# system
+
+def im_on_windows():
+    return os.name == 'nt'
+
+#-------------------------------------------------------------------------------
+# folders
+
+def init_fs_structure(path, structure):
+    '''Creates folder structure in path according dict from parameters
+    example:
+    istream = open('filename.txt')
+    structure = {
+        folder_l0_1: {                   #this is a folder because dict inside
+            folder_l1_1 : {},            #this is a empty folder inside upper folder
+            file_l1_1.txt: 'Hello world!',   #this is file with contents 'Hello world'
+            file_l1_2.ext: istream             #this will create a file with contents from file stream
+        },
+        file_l0_1: some text inside # file on top
+    }
+
+    init_fs_structure(structure)
+    '''
+    assert isinstance(structure, dict)
+    with work_dir(path):
+        for name, data in structure.items():
+            assert data is not None
+            if isinstance(data, dict):  # create a folder
+                os.mkdir(name)
+                init_fs_structure(name, data)
+            elif isinstance(data, str): # just a file
+                with open(name, 'w') as f:
+                    f.write(data)
+            else:                       # everything else threated as stream
+                with open(name, 'w') as f:
+                    f.write(data.read())
+
+
+
+def home_dir():
+    if im_on_windows():
+        return os.environ['USERPROFILE']
+
+    return os.path.expanduser('~')
 
 def checksum(path):
     """Directory sha1 checksum"""
     return checksumdir.dirhash(path, 'sha1')
+
+def split_path_all(path):
+    norm = os.path.normpath(path)
+    return norm.split(os.sep)
+
+def mktree(path):
+    '''Creates not only last folder in path but all
+    for mktree('1/2/3')
+    will create 1/
+                1/2
+                1/2/3
+    '''
+    folders = split_path_all(path)
+    for i, folder in enumerate(folders):
+        f = os.sep.join(folders[:i+1])
+        if not os.path.isdir(f):
+            os.mkdir(f)
 
 
 def rmdir(path):
@@ -101,13 +172,13 @@ def rmdir(path):
             func(path)
         else:
             raise
-    
+
     shutil.rmtree(path, onerror=onerror)
 
-    
+
 class work_dir(object):
     """change working dir within 'with' context
-    Usage: 
+    Usage:
         with workdir('otherdir/foo/'):
             print(os.getcwd())
         print(os.getcwd()) # oldone
@@ -121,7 +192,7 @@ class work_dir(object):
     @property
     def previous(self):
         return self._previous
-    
+
     @property
     def current(self):
         return self._current
@@ -141,20 +212,20 @@ class work_dir(object):
 
 
 class temp_work_dir:
-    
+
     def __enter__(self):
         self._work_dir = work_dir(tempfile.mkdtemp())
-        self._work_dir.__enter__(tmp)
+        self._work_dir.__enter__()
 
     def __exit__(self, *args):
         tmp = self._work_dir.current
-        self._work_dir.__exit__(tmp)
+        self._work_dir.__exit__()
         rmdir(tmp)
         self._work_dir = None
 
     def __str__(self):
         return str(self._work_dir)
-    
+
 
 def system_call(*args, timeout=10):
     return subprocess.run(args, timeout=timeout)

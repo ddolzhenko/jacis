@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""syncing tools
+"""syncing tool
 """
 
 #-------------------------------------------------------------------------------
@@ -31,51 +31,58 @@ __email__  = "d.dolzhenko@gmail.com"
 
 import os
 import git
-import svn.remote
-from urllib.parse import urljoin
+import argparse
 
-from jacis import core, utils
-
-#-------------------------------------------------------------------------------
-
-log = core.get_logger(__name__)
+from jacis import utils
 
 #-------------------------------------------------------------------------------
 
 class Error(Exception):
-    pass
-
-#-------------------------------------------------------------------------------
-
-
-def git_clone(url, path, tag=None):
-    log.debug('git clone {} {}'.format(url, path))
-    repo = git.Repo.clone_from(url, path)
-    if tag:
-        tag_path = 'tags/{}'.format(tag)
-        log.debug('git checkout: '+tag_path)
-        res = repo.git.checkout(tag_path)
-        print(res)
+    def __init__(self, *args):
+        super().__init__(*args)
 
 
-def svn_clone(url, path, tag=None):
-    if tag:
-        url = urljoin(path, 'tags', tag)
-    r = svn.remote.RemoteClient(url)
-    r.checkout(path)
 
+def jacis_plugin(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', help='git url')
+    parser.add_argument('dir', help='local dir')
 
-def store(info, **kvargs):
-    path = kvargs['path']
+    args = parser.parse_args(argv)
 
-    who = info['type']
-    url = info['url']
-    tag = info['tag']
+    sync(args.url, args.dir)
 
-    if who == 'git':
-        git_clone(url, path, tag)
-    elif who == 'svn':
-        svn_clone(url, path, tag)
+def store(info):
+    if info['type'] == 'git':
+        git.Repo.clone_from(info['url'], 'repo')
     else:
-        raise Exception('not supported: ' + who)
+        raise Exception('not supported:' + info['type'])
+
+
+def sync(url, local_dir):
+    git.Repo.clone_from(info['url'], '')
+
+
+@utils.strong_typed(str, str, str, str)
+def auto_repo(kind, remote_url, remote_dir, local_dir):
+    handlers = { 'git', GITRepo }
+
+    if kind not in handlers:
+        raise Error('unknown repo: ', kind)
+
+    Repo = handlers[kind]
+    return Repo(remote_url, remote_dir, local_dir)
+
+
+
+def git_repo(remote_url, remote_dir, local_dir):
+
+    git.Repo(local_dir)
+
+
+class GITRepo:
+    def __init__(self, arg):
+        self.arg = arg
+
+
 
