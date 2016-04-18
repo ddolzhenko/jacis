@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""Init command
 """
 
 #-------------------------------------------------------------------------------
@@ -29,4 +29,25 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
+import os
+import jacis
+from jacis import utils
+from jacis.plugins import init
 
+#-------------------------------------------------------------------------------
+
+class BaseTestCase(utils.TestCase):
+
+    def setUp(self):
+        self.tmp = utils.temp_work_dir()
+        self.tmp.__enter__()
+
+    def tearDown(self):
+        self.tmp.__exit__()
+
+    def cute(self, msg):
+        return "{}. CWD: '{}'".format(msg, self.tmp)
+
+
+    def test_full_repo(self):
+        return

@@ -1,0 +1,4 @@
+
+1.0:
+    dependencies: c++11
+    src: ithub/ddolzhenko/limo

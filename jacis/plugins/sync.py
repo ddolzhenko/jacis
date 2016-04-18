@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""syncing tool
 """
 
 #-------------------------------------------------------------------------------
@@ -28,5 +28,61 @@ __author__ = "Dmitry Dolzhenko"
 __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
+
+import os
+import git
+import argparse
+
+from jacis import utils
+
+#-------------------------------------------------------------------------------
+
+class Error(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+
+def jacis_plugin(argv):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', help='git url')
+    parser.add_argument('dir', help='local dir')
+
+    args = parser.parse_args(argv)
+
+    sync(args.url, args.dir)
+
+def store(info):
+    if info['type'] == 'git':
+        git.Repo.clone_from(info['url'], 'repo')
+    else:
+        raise Exception('not supported:' + info['type'])
+
+
+def sync(url, local_dir):
+    git.Repo.clone_from(info['url'], '')
+
+
+@utils.strong_typed(str, str, str, str)
+def auto_repo(kind, remote_url, remote_dir, local_dir):
+    handlers = { 'git', GITRepo }
+
+    if kind not in handlers:
+        raise Error('unknown repo: ', kind)
+
+    Repo = handlers[kind]
+    return Repo(remote_url, remote_dir, local_dir)
+
+
+
+def git_repo(remote_url, remote_dir, local_dir):
+
+    git.Repo(local_dir)
+
+
+class GITRepo:
+    def __init__(self, arg):
+        self.arg = arg
+
 
 

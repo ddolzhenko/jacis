@@ -19,7 +19,7 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""Plugins auto import
 """
 
 #-------------------------------------------------------------------------------
@@ -29,22 +29,8 @@ __email__  = "d.dolzhenko@gmail.com"
 
 #-------------------------------------------------------------------------------
 
-import argparse
+from jacis import utils
+__all__ = utils.get_public_module_names(__file__)
+from jacis.plugins import*
 
 #-------------------------------------------------------------------------------
-
-def main():
-    parser = argparse.ArgumentParser()
-   
-    parser.add_argument("update", help="Copies or updates folder from external source")
-
-    args = parser.parse_args()
-
-    print(args.update)
-  
-
-if __name__ == "__main__":
-    import sys
-    print("call: '{}'".format(" ".join(sys.argv)))
-    main()
-    print("\n>end<\n")

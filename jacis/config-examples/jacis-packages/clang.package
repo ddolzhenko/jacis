@@ -1,0 +1,9 @@
+
+
+3.5:
+    - sync: web://ibary.exe
+    - extract: mcl
+
+3.9:
+    - sync svn...////
+    - build ;kdwekld

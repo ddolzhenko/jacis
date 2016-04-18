@@ -19,14 +19,21 @@
 # SOFTWARE.
 #-------------------------------------------------------------------------------
 
-"""Main entry point to jacis command line
+"""Version tools
 """
 
 #-------------------------------------------------------------------------------
 
 __author__ = "Dmitry Dolzhenko"
 __email__  = "d.dolzhenko@gmail.com"
+__version__ = 0.1
+#-------------------------------------------------------------------------------
+
+import os
 
 #-------------------------------------------------------------------------------
 
-
+version         = __version__
+version_name    = str(version)
+program_name    = "Jacis"
+program_full_name = "{} version {}".format(program_name, version_name)
