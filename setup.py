@@ -27,7 +27,7 @@ setup(
     classifiers  = [],
     install_requires = [
         "checksumdir==1.0.5",
-        "GitPython==1.0.2",
+        "GitPython==3.1.34",
         "svn==0.3.36"
     ],
 )
